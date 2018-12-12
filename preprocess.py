@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import gensim
 import re
-from joblib import Parallel, delayed
 import os
 from collections import defaultdict
 import pickle
