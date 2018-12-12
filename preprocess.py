@@ -107,6 +107,7 @@ def document_to_df(document):
 def main(path, domains):
     datasets = {}
     for domain in domains:
+        print(domain)
         for file in os.listdir(f'{path}/{domain}'):
             document = load_document(f'{path}/{domain}/{file}')
             df = document_to_df(document)
