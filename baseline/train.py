@@ -168,7 +168,6 @@ def df_to_vector(df, wv):
             case = 'ni'
             y[case] = case_tags(df, y, case)
             x = df.drop(labels=['id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文目', 'is文末'], axis=1)
-            x = np.array(x)
             yield x, y
 
 def load_datasets(path):
