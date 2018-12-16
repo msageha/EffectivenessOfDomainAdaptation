@@ -32,14 +32,13 @@ def create_arg_parser():
     parser.add_argument('--dump_path', dest='dump_path', type=str, required=True, help='model_dump_path')
     return parser
 
-def initialize_model(gpu, v_vec):
+def initialize_model(gpu, vocab_size, v_vec):
     emb_dim = 200
     h_dim = 200
     class_num = 2
     is_gpu = True
     if gpu == -1:
         is_gpu = False
-    vocab_size = len(wv.index2word)
     bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec)
     if is_gpu:
         bilstm = bilstm.cuda()
@@ -205,7 +204,7 @@ def main():
     args.__dict__['trains_size'] = len(trains)
     args.__dict__['vals_size'] = len(vals)
 
-    bilstm = initialize_model(args.gpu, wv.vectors)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors)
     dump_dic(args.__dict__, args.dump_dict, 'args.json')
     train(trains, vals, bilstm, args)
     # train_loader = data.DataLoader(trains, batch_size=16, shuffle=True)
