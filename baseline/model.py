@@ -37,7 +37,7 @@ class BiLSTM(nn.Module):
         word_emb = self.word_embed(x[0])
         feature_emb_list = []
         for i, _x in enumerate(x[1]):
-            feature_emb = self.feature_embed_layers(_x)
+            feature_emb = self.feature_embed_layers[i](_x)
             feature_emb_list.append(feature_emb)
         x_feature = torch.tensor(x[2], dtype=torch.float, device=x[2].device)
         x = torch.cat((word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature), 2)
