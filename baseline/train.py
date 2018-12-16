@@ -63,7 +63,7 @@ def translate_df_tensor(df_list, keys, argsort_index, gpu_id):
         vec = vec.cuda()
     return vec
 
-def translate_batch(batch, gpu):
+def translate_batch(batch, gpu, case):
     x = batch[:, 0]
     y = batch[:, 1]
     files = batch[:, 2]
@@ -83,7 +83,7 @@ def translate_batch(batch, gpu):
 
     y = translate_df_tensor(y, [case], argsort_index, -1)
     y = y.reshape(batchsize)
-    y = torch.eye(max_length, dtype=torch.long)[_y]
+    y = torch.eye(max_length, dtype=torch.long)[y]
     if args.gpu >= 0:
         y = y.cuda()
 
@@ -92,7 +92,6 @@ def translate_batch(batch, gpu):
 
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
-    case = args.case
     epochs = args.max_epoch
     lr = 0.001 #学習係数
     results = {}
@@ -108,7 +107,7 @@ def train(trains, vals, bilstm, args):
             bilstm.zero_grad()
             optimizer.zero_grad()
             batch = trains[perm[i:i+args.batch_size]]
-            x, y, _ = translate_batch(batch, args.gpu)
+            x, y, _ = translate_batch(batch, args.gpu, args.case)
             batchsize = len(batch)
 
             out = bilstm.forward(x)
@@ -148,7 +147,7 @@ def test(tests, bilstm, args):
     for i in tqdm(range(0, N, args.batch_size), mininterval=5):
         batch = tests[i:i+args.batch_size]
         batchsize = len(batch)
-        x, y, files = translate_batch(batch, args.gpu)
+        x, y, files = translate_batch(batch, args.gpu, args.case)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
