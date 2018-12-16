@@ -94,7 +94,7 @@ def train(trains, vals, bilstm, args):
     print('--- start training ---')
     case = args.case
     batchsize = args.batch
-    epochs = args.epochs
+    epochs = args.max_epochs
     lr = 0.001 #学習係数
     results = {}
     optimizer = optim.Adam(bilstm.parameters(), lr=lr)
@@ -198,7 +198,7 @@ def main():
         is_bin = False
     wv = WordVector(args.emb_path, is_bin)
     is_intra = True
-    if args.type == 'inter':
+    if args.dataset_type == 'inter':
         is_intra = False
     datasets = load_datasets(wv, is_intra, args.media)
     trains, vals, tests = split(datasets)
