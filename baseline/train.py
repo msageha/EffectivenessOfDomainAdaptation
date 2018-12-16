@@ -200,6 +200,7 @@ def main():
     trains, vals, tests = split(datasets)
     args.__dict__['trains_size'] = len(trains)
     args.__dict__['vals_size'] = len(vals)
+    args.__dict__['tests_size'] = len(tests)
 
     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
