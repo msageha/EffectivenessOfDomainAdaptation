@@ -25,7 +25,7 @@ def create_arg_parser():
     parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=10, help='max epoch')
     parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'FastText', 'ELMo', 'Random'], help='word embedding type')
     parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
-    parser.add_argument('--emb_requires_grad', dest='emb_requires_grad', help='fixed word embedding or not')
+    parser.add_argument('--emb_requires_grad_false', dest='emb_requires_grad', action='store_false', help='fixed word embedding or not')
     parser.add_argument('--gpu', '-g', dest='gpu', type=int, default=-1, help='GPU ID for execution')
     parser.add_argument('--batch', '-b', dest='batch_size', type=int, default=32, help='mini batch size')
     parser.add_argument('--case', '-c', dest='case', type=str, required=True, choices=['ga', 'o', 'ni'], help='target "case" type')
@@ -33,7 +33,7 @@ def create_arg_parser():
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
     return parser
 
-def initialize_model(gpu, vocab_size, v_vec):
+def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad):
     emb_dim = 200
     h_dim = 200
     class_num = 2
@@ -47,6 +47,9 @@ def initialize_model(gpu, vocab_size, v_vec):
     for m in bilstm.modules():
         print(m.__class__.__name__)
         weights_init(m)
+
+    for param in bilstm.word_embed.parameters():
+        param.requires_grad = emb_requires_grad
 
     return bilstm
 
@@ -203,8 +206,9 @@ def main():
     args.__dict__['vals_size'] = len(vals)
     args.__dict__['tests_size'] = len(tests)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, args.emb_requires_grad)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
+    pprint(args.__dict__)
     train(trains, vals, bilstm, args)
     # train_loader = data.DataLoader(trains, batch_size=16, shuffle=True)
     # vals_loader = data.DataLoader(vals, batch_size=16, shuffle=True)
