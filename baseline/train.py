@@ -27,7 +27,7 @@ def create_arg_parser():
     parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
     parser.add_argument('--emb_requires_grad_false', dest='emb_requires_grad', action='store_false', help='fixed word embedding or not')
     parser.add_argument('--gpu', '-g', dest='gpu', type=int, default=-1, help='GPU ID for execution')
-    parser.add_argument('--batch', '-b', dest='batch_size', type=int, default=32, help='mini batch size')
+    parser.add_argument('--batch', '-b', dest='batch_size', type=int, default=16, help='mini batch size')
     parser.add_argument('--case', '-c', dest='case', type=str, required=True, choices=['ga', 'o', 'ni'], help='target "case" type')
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
@@ -106,6 +106,7 @@ def train(trains, vals, bilstm, args):
         perm = np.random.permutation(N)
         running_loss = 0.0
         running_correct = 0
+        running_samples = 0
         bilstm.train()
         for i in tqdm(range(0, N, args.batch_size)):
             bilstm.zero_grad()
@@ -118,17 +119,18 @@ def train(trains, vals, bilstm, args):
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
             pred = out.argmax(dim=2)[:, 1]
             running_correct += pred.eq(y.argmax(dim=1)).sum().item()
-
+            running_samples += len(batch)
             loss = criterion(out, y)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
 
             if i % 100 == 99:    # print every 100 mini-batches
-                print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/100}')
+                print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/running_samples}')
                 running_loss = 0.0
                 running_correct = 0
-        print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/100}')
+                running_samples = 0
+        print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/(i+1%100)}\tacc: {running_correct/running_samples}')
         _results = test(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
@@ -173,7 +175,7 @@ def test(tests, bilstm, args):
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
     for domain in sorted(results.keys()):
-        pprint(dict(results[domain]))
+        pprint(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]/100}\tacc: {results[domain]["acc"]/100}')
     return results
 
 def return_file_domain(file):
