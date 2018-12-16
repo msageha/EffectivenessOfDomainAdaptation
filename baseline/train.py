@@ -24,7 +24,8 @@ def create_arg_parser():
     parser.add_argument('--type', dest='dataset_type', required=True, choices=['intra', 'inter'], help='dataset: "intra" or "inter"')
     parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=10, help='max epoch')
     parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'FastText', 'ELMo', 'Random'], help='word embedding type')
-    parser.add_argument('--emb_path', dest='emb_path',  help='word embedding path')
+    parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
+    parser.add_argument('--emb_requires_grad', dest='emb_requires_grad', help='fixed word embedding or not')
     parser.add_argument('--gpu', '-g', dest='gpu', type=int, default=-1, help='GPU ID for execution')
     parser.add_argument('--batch', '-b', dest='batch_size', type=int, default=32, help='mini batch size')
     parser.add_argument('--case', '-c', dest='case', type=str, required=True, choices=['ga', 'o', 'ni'], help='target "case" type')
@@ -157,7 +158,7 @@ def test(tests, bilstm, args):
             domain = return_file_domain(file)
             results[domain]['correct'] += correct
             results[domain]['samples'] += 1
-            loss = criterion(out[i].reshape(1, 2, 85), y[i].reshape(1, 85))
+            loss = criterion(out[i].reshape(1, 2, -1), y[i].reshape(1, -1))
             results[domain]['loss'] += loss.item()
     for domain in args.media:
         results['All']['loss'] += results[domain]['loss']
