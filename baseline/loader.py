@@ -234,9 +234,13 @@ def split(dataset, sizes=[0.7, 0.1, 0.2]):
     tests = []
     for domain in dataset.keys():
         dataset_size = len(dataset[domain])
-        train = dataset[domain][:int(sizes[0]/sum(sizes)*dataset_size)]
-        val = dataset[domain][int(sizes[0]/sum(sizes)*dataset_size):int(sizes[1]/sum(sizes)*dataset_size)]
-        test = dataset[domain][int(sizes[1]/sum(sizes)*dataset_size):]
+        end = int(sizes[0]/sum(sizes)*dataset_size)
+        train = dataset[domain][:end]
+        start = end
+        end += int(sizes[1]/sum(sizes)*dataset_size)
+        val = dataset[domain][start:end]
+        start = end
+        test = dataset[domain][start:]
         trains += train
         vals += val
         tests += test
