@@ -93,7 +93,7 @@ def translate_batch(batch, gpu):
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
     case = args.case
-    epochs = args.max_epochs
+    epochs = args.max_epoch
     lr = 0.001 #学習係数
     results = {}
     optimizer = optim.Adam(bilstm.parameters(), lr=lr)
