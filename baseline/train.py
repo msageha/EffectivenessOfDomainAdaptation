@@ -84,7 +84,7 @@ def translate_batch(batch, gpu, case):
     y = translate_df_tensor(y, [case], argsort_index, -1)
     y = y.reshape(batchsize)
     y = torch.eye(max_length, dtype=torch.long)[y]
-    if args.gpu >= 0:
+    if gpu >= 0:
         y = y.cuda()
 
     files = files[argsort_index]
