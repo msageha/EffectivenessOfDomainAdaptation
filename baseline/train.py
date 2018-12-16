@@ -17,7 +17,7 @@ from model import BiLSTM
 def weights_init(m):
     classname = m.__class__.__name__
     if hasattr(m, 'weight') and (classname.find('Embedding') == -1):
-        nn.init.xavier_uniform(m.weight.data, gain=nn.init.calculate_gain('relu'))
+        nn.init.xavier_uniform_(m.weight.data, gain=nn.init.calculate_gain('relu'))
 
 def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
@@ -118,7 +118,7 @@ def train(trains, vals, bilstm, args):
             loss = criterion(out, y)
             loss.backward()
             optimizer.step()
-            running_loss += loss.data[0]
+            running_loss += loss.item()
 
             if i % 100 == 99:    # print every 100 mini-batches
                 print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/100}')
@@ -158,7 +158,7 @@ def test(tests, bilstm, args):
             results[domain]['correct'] += correct
             results[domain]['samples'] += 1
             loss = criterion(out[i].reshape(1, 2, 85), y[i].reshape(1, 85))
-            results[domain]['loss'] += loss
+            results[domain]['loss'] += loss.item()
     for domain in args.media:
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
