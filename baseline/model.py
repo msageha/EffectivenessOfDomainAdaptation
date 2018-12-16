@@ -13,13 +13,14 @@ class BiLSTM(nn.Module):
             v_vec = torch.tensor(v_vec)
             self.word_embed.weight.data.copy_(v_vec)
 
-        self.feature_embed_layers = []
+        feature_embed_layers = []
         feature_embed_size = {"feature:0":25, "feature:1":26, "feature:2":12, "feature:3":6, "feature:4":94, "feature:5":32}
         for key in feature_embed_size:
             size = feature_embed_size[key]
             feature_embed = nn.Embedding(size, 5, padding_idx=0)
             feature_embed.weight.data[0] = torch.zeros(5)
-            self.feature_embed_layers.append(feature_embed)
+            feature_embed_layers.append(feature_embed)
+        self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
 
         self.lstm = nn.LSTM(input_size=emb_dim+35, hidden_size=h_dim, batch_first=batch_first, bidirectional=True)
         self.l1 = nn.Linear(h_dim*2, n_labels)
