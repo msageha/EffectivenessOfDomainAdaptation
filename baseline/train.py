@@ -63,21 +63,22 @@ def translate_df_tensor(df_list, keys, argsort_index, gpu_id):
         vec = vec.cuda()
     return vec
 
-def translate_batch(batch):
+def translate_batch(batch, gpu):
     x = batch[:, 0]
     y = batch[:, 1]
     files = batch[:, 2]
+    batchsize = len(batch)
     #0 paddingするために，長さで降順にソートする．
     argsort_index = np.array([i.shape[0] for i in x]).argsort()[::-1]
     max_length = x[argsort_index[0]].shape[0]
-    x_wordemb = translate_df_tensor(x, ['単語ID'], argsort_index, args.gpu)
+    x_wordemb = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
     x_wordemb = x_wordemb.reshape(batchsize, -1)
     x_feature_emb_list = []
     for i in range(6):
-        x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], argsort_index, args.gpu)
+        x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], argsort_index, gpu)
         x_feature_emb = x_feature_emb.reshape(batchsize, -1)
         x_feature_emb_list.append(x_feature_emb)
-    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is_target_verb', '述語からの距離'], argsort_index, args.gpu)
+    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is_target_verb', '述語からの距離'], argsort_index, gpu)
     x = [x_wordemb, x_feature_emb_list, x_feature]
 
     y = translate_df_tensor(y, [case], argsort_index, -1)
@@ -92,7 +93,6 @@ def translate_batch(batch):
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
     case = args.case
-    batchsize = args.batch
     epochs = args.max_epochs
     lr = 0.001 #学習係数
     results = {}
@@ -104,11 +104,12 @@ def train(trains, vals, bilstm, args):
         running_loss = 0.0
         running_correct = 0
         bilstm.train()
-        for i in tqdm(range(0, N, batchsize)):
+        for i in tqdm(range(0, N, args.batch_size)):
             bilstm.zero_grad()
             optimizer.zero_grad()
-            batch = trains[perm[i:i+batchsize]]
-            x, y, _ = translate_batch(batch)
+            batch = trains[perm[i:i+args.batch_size]]
+            x, y, _ = translate_batch(batch, args.gpu)
+            batchsize = len(batch)
 
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -144,10 +145,10 @@ def test(tests, bilstm, args):
     results = defaultdict(lambda: defaultdict(float))
     criterion = nn.CrossEntropyLoss()
     N = len(tests)
-    batchsize = args.batch
-    for i in tqdm(range(0, N, batchsize), mininterval=5):
-        batch = tests[i:i+batchsize]
-        x, y, files = translate_batch(batch)
+    for i in tqdm(range(0, N, args.batch_size), mininterval=5):
+        batch = tests[i:i+args.batch_size]
+        batchsize = len(batch)
+        x, y, files = translate_batch(batch, args.gpu)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
