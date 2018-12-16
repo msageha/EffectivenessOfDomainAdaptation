@@ -112,7 +112,7 @@ def train(trains, vals, bilstm, args):
 
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
-            pred = out.argmax(dim=2)[:, 1].cpu()
+            pred = out.argmax(dim=2)[:, 1]
             running_correct += pred.eq(y.argmax(dim=1)).sum().item()
 
             loss = criterion(out, y)
@@ -151,7 +151,7 @@ def test(tests, bilstm, args):
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
-        pred = out.argmax(dim=2)[:, 1].cpu()
+        pred = out.argmax(dim=2)[:, 1]
         for i, file in enumerate(files):
             correct = pred[i].eq(y[i].argmax()).item()
             domain = return_file_domain(file)
@@ -159,9 +159,6 @@ def test(tests, bilstm, args):
             results[domain]['samples'] += 1
             loss = criterion(out[i].reshape(1, 2, 85), y[i].reshape(1, 85))
             results[domain]['loss'] += loss
-    all_samples = 0
-    all_correct = 0
-    all_loss = 0
     for domain in args.media:
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
