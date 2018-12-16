@@ -29,7 +29,7 @@ def create_arg_parser():
     parser.add_argument('--batch', '-b', dest='batch_size', type=int, default=32, help='mini batch size')
     parser.add_argument('--case', '-c', dest='case', type=str, required=True, choices=['ga', 'o', 'ni'], help='target "case" type')
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
-    parser.add_argument('--dump_path', dest='dump_path', type=str, required=True, help='model_dump_path')
+    parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
     return parser
 
 def initialize_model(gpu, vocab_size, v_vec):
@@ -49,9 +49,9 @@ def initialize_model(gpu, vocab_size, v_vec):
 
     return bilstm
 
-def dump_dic(dic, dump_dict, file_name):
-    os.makedirs(f'./{dump_dict}/', exist_ok=True)
-    with open(f'./{dump_path}/{file_name}', 'w') as f:
+def dump_dic(dic, dump_dir, file_name):
+    os.makedirs(f'./{dump_dir}/', exist_ok=True)
+    with open(f'./{dump_dir}/{file_name}', 'w') as f:
         json.dump(dic, f, indent=2)
 
 def translate_df_tensor(df_list, keys, argsort_index, gpu_id):
@@ -126,15 +126,15 @@ def train(trains, vals, bilstm, args):
                 running_correct = 0
         _results = test(vals, bilstm, args)
         results[epoch] = _results
-        save_model(epoch, bilstm, args.dump_path, args.gpu)
-    dump_dic(results, args.dump_dict, 'training_logs.json')
+        save_model(epoch, bilstm, args.dump_dir, args.gpu)
+    dump_dic(results, args.dump_dir, 'training_logs.json')
     best_epochs = defaultdict(lambda: defaultdict(float))
     for epoch in results:
         for domain in sorted(results[epoch].keys()):
             if results[epoch][domain]['acc'] > best_epochs[domain]['acc']:
                 best_epochs[domain]['acc'] = results[epoch][domain]['acc']
                 best_epochs[domain]['epoch'] = epoch
-    dump_dic(best_epochs, args.dump_dict, 'training_result.json')
+    dump_dic(best_epochs, args.dump_dir, 'training_result.json')
     print('--- finish training ---\n--- best epochs for each domain ---')
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tacc: {best_epochs[domain]["acc"]}')
@@ -181,11 +181,11 @@ def return_file_domain(file):
         if domain in file:
             return domain
 
-def save_model(epoch, bilstm, dump_path, gpu):
+def save_model(epoch, bilstm, dump_dir, gpu):
     print('--- save model ---')
-    os.makedirs(f'./{dump_path}/model/', exist_ok=True)
+    os.makedirs(f'./{dump_dir}/model/', exist_ok=True)
     bilstm.cpu()
-    torch.save(bilstm.state_dict(), f'./{dump_path}/model/{epoch}.pkl')
+    torch.save(bilstm.state_dict(), f'./{dump_dir}/model/{epoch}.pkl')
     if gpu >= 0:
         bilstm.cuda()
 
@@ -205,7 +205,7 @@ def main():
     args.__dict__['vals_size'] = len(vals)
 
     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors)
-    dump_dic(args.__dict__, args.dump_dict, 'args.json')
+    dump_dic(args.__dict__, args.dump_dir, 'args.json')
     train(trains, vals, bilstm, args)
     # train_loader = data.DataLoader(trains, batch_size=16, shuffle=True)
     # vals_loader = data.DataLoader(vals, batch_size=16, shuffle=True)
