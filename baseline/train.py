@@ -183,7 +183,7 @@ def return_file_domain(file):
             return domain
 
 def save_model(epoch, bilstm, dump_path, gpu):
-    print('___save_model___')
+    print('--- save model ---')
     os.makedirs(f'./{dump_path}/model/', exist_ok=True)
     bilstm.cpu()
     torch.save(bilstm.state_dict(), f'./{dump_path}/model/{epoch}.pkl')
