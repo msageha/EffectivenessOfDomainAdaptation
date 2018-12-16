@@ -109,7 +109,7 @@ def train(trains, vals, bilstm, args):
             bilstm.zero_grad()
             optimizer.zero_grad()
             batch = trains[perm[i:i+batchsize]]
-            x, y, _ translate_batch(batch)
+            x, y, _ = translate_batch(batch)
 
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -148,7 +148,7 @@ def test(tests, bilstm, args):
     batchsize = args.batch
     for i in tqdm(range(0, N, batchsize), mininterval=5):
         batch = tests[i:i+batchsize]
-        x, y, files translate_batch(batch)
+        x, y, files = translate_batch(batch)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
