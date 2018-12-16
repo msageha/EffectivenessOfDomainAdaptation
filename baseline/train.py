@@ -128,6 +128,7 @@ def train(trains, vals, bilstm, args):
                 print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/100}')
                 running_loss = 0.0
                 running_correct = 0
+        print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/100}')
         _results = test(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
@@ -171,7 +172,6 @@ def test(tests, bilstm, args):
         results[domain]['acc'] = results[domain]['correct']/results[domain]['samples']
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
-    print(f'[epoch: {epoch}]')
     for domain in sorted(results.keys()):
         pprint(dict(results[domain]))
     return results
