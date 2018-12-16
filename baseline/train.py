@@ -55,27 +55,6 @@ def dump_dic(dic, dump_dict, file_name):
     with open(f'./{dump_path}/{file_name}', 'w') as f:
         json.dump(dic, f, indent=2)
 
-def main():
-    parser = create_arg_parser()
-    args = parser.parse_args()
-    is_bin = True
-    if args.emb_type == 'Random' or args.emb_type == 'ELMo':
-        is_bin = False
-    wv = WordVector(args.emb_path, is_bin)
-    is_intra = True
-    if args.type == 'inter':
-        is_intra = False
-    datasets = load_datasets(wv, is_intra, args.media)
-    trains, vals, tests = split(datasets)
-    args.__dict__['trains_size'] = len(trains)
-    args.__dict__['vals_size'] = len(vals)
-
-    bilstm = initialize_model(args.gpu, wv.vectors)
-    dump_dic(args.__dict__, args.dump_dict, 'args.json')
-    train(trains, vals, bilstm, args)
-    # train_loader = data.DataLoader(trains, batch_size=16, shuffle=True)
-    # vals_loader = data.DataLoader(vals, batch_size=16, shuffle=True)
-
 def translate_df_tensor(df_list, keys, argsort_index, gpu_id):
     vec = [np.array(i[keys], dtype=np.int) for i in df_list]
     vec = np.array(vec)[argsort_index]
@@ -211,6 +190,29 @@ def save_model(epoch, bilstm, dump_path, gpu):
     if gpu >= 0:
         bilstm.cuda()
 
+def main():
+    parser = create_arg_parser()
+    args = parser.parse_args()
+    is_bin = True
+    if args.emb_type == 'Random' or args.emb_type == 'ELMo':
+        is_bin = False
+    wv = WordVector(args.emb_path, is_bin)
+    is_intra = True
+    if args.type == 'inter':
+        is_intra = False
+    datasets = load_datasets(wv, is_intra, args.media)
+    trains, vals, tests = split(datasets)
+    args.__dict__['trains_size'] = len(trains)
+    args.__dict__['vals_size'] = len(vals)
+
+    bilstm = initialize_model(args.gpu, wv.vectors)
+    dump_dic(args.__dict__, args.dump_dict, 'args.json')
+    train(trains, vals, bilstm, args)
+    # train_loader = data.DataLoader(trains, batch_size=16, shuffle=True)
+    # vals_loader = data.DataLoader(vals, batch_size=16, shuffle=True)
+
+if __name__ == '__main__':
+    main()
 # def load_model(epoch, bilstm, domain):
 #     print('___load_model___')
 #     bilstm.load_state_dict(torch.load(f'./model_{domain}/{epoch}.pkl'))
