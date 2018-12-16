@@ -112,6 +112,7 @@ def translate_batch(batch):
     return x, y, files
 
 def train(trains, vals, bilstm, args):
+    print('--- start training ---')
     case = args.case
     batchsize = args.batch
     epochs = args.epochs
@@ -156,6 +157,9 @@ def train(trains, vals, bilstm, args):
                 best_epochs[domain]['acc'] = results[epoch][domain]['acc']
                 best_epochs[domain]['epoch'] = epoch
     dump_dic(best_epochs, args.dump_dict, 'training_result.json')
+    print('--- finish training ---\n--- best epochs for each domain ---')
+    for domain in sorted(best_epochs.keys()):
+        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tacc: {best_epochs[domain]["acc"]}')
 
 def test(tests, bilstm, args):
     bilstm.eval()

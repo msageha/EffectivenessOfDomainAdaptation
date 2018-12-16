@@ -95,7 +95,7 @@ def is_num(text):
     else: return False
 
 def load_word_vector(path):
-    print(f'start loading word2vec from {path}')
+    print(f'--- start loading Word Vector from {path} ---')
     model = gensim.models.KeyedVectors.load(path)
     return model
 
@@ -208,10 +208,10 @@ def df_to_inter_vector(df, wv):
 
 def creating_datasets_for_each_domain(path, wv, is_intra, media):
     with open(path, 'rb') as f:
-        print(f'start loading datasets pickle from {path}')
+        print(f'--- start loading datasets pickle from {path} ---')
         datasets = pickle.load(f)
     for domain in media: #メディアごとに処理を行う
-        print(f'start making datasets in {domain}')
+        print(f'--- start making datasets in {domain} ---')
         for file in datasets:
             if domain in file:
                 if is_intra:
