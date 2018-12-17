@@ -19,9 +19,7 @@ cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/baseline/
 # python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_PM.bin" --gpu 0 --case "ga" --dump_dir "intra/Word2Vec_Fix/All_PM/ga" --emb_requires_grad_false
 # python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_PN.bin" --gpu 0 --case "ga" --dump_dir "intra/Word2Vec_Fix/All_PN/ga" --emb_requires_grad_false
 # python3 train.py --type "intra" --epochs 10 --emb_type FastText --emb_path "../../data/embedding/FastText/All.bin" --gpu 0 --case "ga" --dump_dir "intra/FastText_Fix/All/ga" --emb_requires_grad_false
-python3 test.py --gpu 0 --load_dir "intra/Random/ga"
-python3 test.py --gpu 0 --load_dir "intra/Random_Fix/ga"
-python3 test.py --gpu 0 --load_dir "intra/Word2Vec/All/ga"
-python3 test.py --gpu 0 --load_dir "intra/Word2Vec_Fix/All/ga"
-python3 test.py --gpu 0 --load_dir "intra/Word2Vec/All_OC/ga"
-python3 test.py --gpu 0 --load_dir "intra/Word2Vec_Fix/All_OC/ga"
+python3 test.py --gpu 0 --load_dir "intra/Word2Vec/All_OY/ga"
+python3 test.py --gpu 0 --load_dir "intra/Word2Vec_Fix/All_OY/ga"
+python3 test.py --gpu 0 --load_dir "intra/Word2Vec/All_OW/ga"
+python3 test.py --gpu 0 --load_dir "intra/Word2Vec_Fix/All_OW/ga"
