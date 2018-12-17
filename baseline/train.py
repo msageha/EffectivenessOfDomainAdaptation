@@ -96,7 +96,7 @@ def translate_batch(batch, gpu, case):
 
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
-    epochs = args.max_epoch
+    epochs = args.max_epoch+1
     lr = 0.001 #学習係数
     results = {}
     optimizer = optim.Adam(bilstm.parameters(), lr=lr)
@@ -217,6 +217,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-# def load_model(epoch, bilstm, domain):
-#     print('___load_model___')
-#     bilstm.load_state_dict(torch.load(f'./model_{domain}/{epoch}.pkl'))
