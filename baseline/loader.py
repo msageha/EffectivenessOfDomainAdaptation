@@ -77,23 +77,23 @@ class VirtualWordsDataFrame():
         self.__exo2__()
         self.__exoX__()
         self.__none__()
-        df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', 'is主辞', 'n文目', 'is文末'])
+        df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目', 'is文末'])
         self.virtual_words = pd.concat([df, self.none, self.exoX, self.exo2, self.exo1], ignore_index=True, sort=False)
 
     def __exo1__(self):
-        df = pd.DataFrame([[-1, '<exo1>', '代名詞', '', '', '', '', '', -1, 1, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', 'is主辞', 'n文目'])
+        df = pd.DataFrame([[-1, '<exo1>', '代名詞', '', '', '', '', '', -1, '-1F', 1, 0, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目'])
         self.exo1 = df
 
     def __exo2__(self):
-        df = pd.DataFrame([[-2, '<exo2>', '代名詞', '', '', '', '', '', -1, 1, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', 'is主辞', 'n文目'])
+        df = pd.DataFrame([[-2, '<exo2>', '代名詞', '', '', '', '', '', -1, '-1F', 1, 0, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目'])
         self.exo2 = df
 
     def __exoX__(self):
-        df = pd.DataFrame([[-3, '<exoX>', '代名詞', '', '', '', '', '', -1, 1, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', 'is主辞', 'n文目'])
+        df = pd.DataFrame([[-3, '<exoX>', '代名詞', '', '', '', '', '', -1, '-1F', 1, 0, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目'])
         self.exoX = df
 
     def __none__(self):
-        df = pd.DataFrame([[-4, '<none>', '', '', '', '', '', '', -1, 1, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', 'is主辞', 'n文目'])
+        df = pd.DataFrame([[-4, '<none>', '', '', '', '', '', '', -1, '-1F', 1, 0, -1]], columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目'])
         self.none = df
 
 def is_num(text):
@@ -159,6 +159,7 @@ def df_to_intra_vector(df, wv):
             row['is主辞'] = 1
         else:
             row['is主辞'] = 0
+        row['係り先文節'] = int(row['係り先文節'][:-1])
     for index, row in df.iterrows():
         if row['type'] == 'noun' or row['type'] == 'pred':
             y = row.loc[['ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type']].copy()
@@ -196,6 +197,10 @@ def df_to_inter_vector(df, wv):
             row['is主辞'] = 1
         else:
             row['is主辞'] = 0
+        if row['is機能語']:
+            row['is機能語'] = 1
+        else:
+            row['is機能語'] = 0
     for index, row in df.iterrows():
         if row['type'] == 'noun' or row['type'] == 'pred':
             y = row.loc[['ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type']].copy()
