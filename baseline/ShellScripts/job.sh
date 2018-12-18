@@ -23,3 +23,13 @@ parallel --dry-run "\
     python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_file_name/{}
     " ::: ${case[@]}
 
+
+case=(ga)
+type=intra
+emb_type=Random
+emb_path='./train_words.txt'
+emb_file_name=200
+parallel --dry-run "\
+    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_file_name/{}
+    python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_file_name/{}
+    " ::: ${case[@]}

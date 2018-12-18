@@ -101,6 +101,10 @@ def is_num(text):
     if m: return True
     else: return False
 
+def extraction_num(text):
+    m = re.search(r'([-0-9]+)', text)
+    return int(m.group(1))
+
 def load_word_vector(path):
     print(f'--- start loading Word Vector from {path} ---')
     model = gensim.models.KeyedVectors.load(path)
@@ -159,7 +163,7 @@ def df_to_intra_vector(df, wv):
             row['is主辞'] = 1
         else:
             row['is主辞'] = 0
-        row['係り先文節'] = int(row['係り先文節'][:-1])
+        row['係り先文節'] = extraction_num(row['係り先文節'])
     for index, row in df.iterrows():
         if row['type'] == 'noun' or row['type'] == 'pred':
             y = row.loc[['ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type']].copy()
