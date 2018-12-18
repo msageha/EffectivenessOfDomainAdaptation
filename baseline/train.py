@@ -195,6 +195,30 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
                     pred_case_type = 'intra(zero)'
     confusion_matrix['actual'][actual_case_type]['predicted'][pred_case_type] += 1
 
+def calculate_f1(confusion_matrix):
+    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)', '全体']
+    columns = ['precision', 'recall', 'F1-score']
+    df = pd.DataFrame(data=0.0, index=case_types, columns=columns)
+    for case_type in case_types:
+        tp = confusion_matrix['actual', case_type]['predicted', case_type]
+        #precision
+        df['precision'][case_type] = tp/sum(confusion_matrix.loc['predicted', case_type])
+        #recall
+        df['recall'][case_type] = tp/sum(confusion_matrix['actual', case_type])
+        #F1-score
+        df['F1-score'][case_type] = (2*df['precision'][case_type]*df['recall'][case_type])/(df['precision'][case_type]+df['recall'][case_type])
+    all_tp = 0
+    all_fp = 0
+    all_fn = 0
+    for case_type in case_types:
+        all_tp += confusion_matrix['actual', case_type]['predicted', case_type]
+        all_fp += sum(confusion_matrix.loc['predicted', case_type])
+        all_fn += sum(confusion_matrix['actual', case_type])
+    df['precision']['全体'] = all_tp/(all_tp+all_fp)
+    df['recall']['全体'] = all_tp/(all_tp+all_fn)
+    df['F1-score']['全体'] = (2*df['precision']['全体']*df['recall']['全体'])/(df['precision']['全体']+df['recall']['全体'])
+    return df
+
 def test(tests, bilstm, args):
     results = defaultdict(lambda: defaultdict(float))
     for domain in args.media:
@@ -229,8 +253,10 @@ def test(tests, bilstm, args):
                 results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
         results[domain]['acc'] = results[domain]['correct']/results[domain]['samples']
+        results[domain]['F1'] = calculate_f1(results[domain]['confusion_matrix'])
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
+    results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tacc: {results[domain]["acc"]}')
     import ipdb; ipdb.set_trace();
