@@ -159,9 +159,46 @@ def train(trains, vals, bilstm, args):
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tacc: {best_epochs[domain]["acc"]}')
 
+def initialize_confusion_matrix():
+    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
+    index = pd.MultiIndex.from_arrays([['predicted']*7, case_types])
+    columns = pd.MultiIndex.from_arrays([['actual']*7, case_types])
+    df = pd.DataFrame(data=0, index=index, columns=columns)
+    return df
+
+def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
+    actual_case_type = batch[1][f'{target_case}_dep']
+    if pred == 0:
+        pred_case_type = 'none'
+    elif pred == 1:
+        pred_case_type = 'exo1'
+    elif pred == 2:
+        pred_case_type = 'exo2'
+    elif pred == 3:
+        pred_case_type = 'exoX'
+    else:
+        target_verb_index = batch[1].name
+        verb_phrase_number = batch[0]['n文節目'][target_verb_index]
+        pred_dependency_relation_phrase_number = batch[0]['係り先文節'][pred]
+        if verb_phrase_number == pred_dependency_relation_phrase_number:
+            pred_case_type = 'intra(dep)'
+        else:
+            if 'n文目' in batch[0].keys():
+                if batch[0]['n文目'][target_verb_index] == batch[0]['n文目'][pred]:
+                    pred_case_type = 'intra(zero)'
+                else:
+                    pred_case_type = 'inter(zero)'
+            else:
+                pred_case_type = 'intra(zero)'
+    confusion_matrix['actual'][actual_case_type]['pred'][pred_case_type] += 1
+
 def test(tests, bilstm, args):
-    bilstm.eval()
     results = defaultdict(lambda: defaultdict(float))
+    for domain in args.media:
+        results[domain]['confusion_matrix'] = initialize_confusion_matrix()
+    results['All']['confusion_matrix'] = initialize_confusion_matrix()
+
+    bilstm.eval()
     criterion = nn.CrossEntropyLoss()
     N = len(tests)
     for i in tqdm(range(0, N, args.batch_size), mininterval=5):
@@ -172,7 +209,6 @@ def test(tests, bilstm, args):
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
         pred = out.argmax(dim=2)[:, 1]
-        import ipdb; ipdb.set_trace();
         for i, file in enumerate(files):
             correct = pred[i].eq(y[i].argmax()).item()
             domain = return_file_domain(file)
@@ -180,16 +216,21 @@ def test(tests, bilstm, args):
             results[domain]['samples'] += 1
             loss = criterion(out[i].reshape(1, 2, -1), y[i].reshape(1, -1))
             results[domain]['loss'] += loss.item()
+            calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
     for domain in args.media:
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
         results['All']['correct'] += results[domain]['correct']
+        for i in range(results[domain]['confusion_matrix'].shape[0]):
+            for j in range(results[domain]['confusion_matrix'].shape[1]):
+                results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
         results[domain]['acc'] = results[domain]['correct']/results[domain]['samples']
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tacc: {results[domain]["acc"]}')
+    import ipdb; ipdb.set_trace();
     return results
 
 def return_file_domain(file):

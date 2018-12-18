@@ -135,7 +135,7 @@ def case_tags_to_id(df, y, case):
         else:
             return 1, 'inter' #文内ゼロの場合，文間ゼロ照応はexogと同じタグIDに．
     elif y[case] == 'exog':
-        return 1, 'exog'
+        return 1, 'exoX'
     elif y[case] == 'exo2':
         return 2, 'exo2'
     elif y[case] == 'exo1':
@@ -163,6 +163,10 @@ def df_to_intra_vector(df, wv):
             row['is主辞'] = 1
         else:
             row['is主辞'] = 0
+        if row['is機能語']:
+            row['is機能語'] = 1
+        else:
+            row['is機能語'] = 0
         row['係り先文節'] = extraction_num(row['係り先文節'])
     for index, row in df.iterrows():
         if row['type'] == 'noun' or row['type'] == 'pred':
@@ -205,6 +209,7 @@ def df_to_inter_vector(df, wv):
             row['is機能語'] = 1
         else:
             row['is機能語'] = 0
+        row['係り先文節'] = extraction_num(row['係り先文節'])
     for index, row in df.iterrows():
         if row['type'] == 'noun' or row['type'] == 'pred':
             y = row.loc[['ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type']].copy()
@@ -214,7 +219,7 @@ def df_to_inter_vector(df, wv):
                 if y[f'{case}_dep'] == None:
                     y[f'{case}_dep'] = tag
                 else:
-                    y[f'{case}_dep'] = tag + y[f'{case}_dep']
+                    y[f'{case}_dep'] = tag + '(' + y[f'{case}_dep'] + ')'
             x = df.drop(labels=['id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
