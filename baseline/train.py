@@ -169,11 +169,11 @@ def initialize_confusion_matrix():
 def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
     actual_case_type = _batch[1][f'{target_case}_dep']
     if _pred == 0:
-        _pred_case_type = 'none'
+        pred_case_type = 'none'
     elif _pred == 1:
-        _pred_case_type = 'exo1'
+        pred_case_type = 'exo1'
     elif _pred == 2:
-        _pred_case_type = 'exo2'
+        pred_case_type = 'exo2'
     elif _pred == 3:
         pred_case_type = 'exoX'
     else:
