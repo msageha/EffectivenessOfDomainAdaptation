@@ -180,7 +180,7 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
         target_verb_index = _batch[1].name
         verb_phrase_number = _batch[0]['n文節目'][target_verb_index]
         if _pred >= len(_batch[0]['係り先文節']):
-            pred_case_type = 'iner(zero)'
+            pred_case_type = 'inter(zero)'
         else:
             pred_dependency_relation_phrase_number = _batch[0]['係り先文節'][_pred]
             if verb_phrase_number == pred_dependency_relation_phrase_number:
