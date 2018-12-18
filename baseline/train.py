@@ -13,6 +13,8 @@ from tqdm import tqdm
 from loader import WordVector, load_datasets, split
 from model import BiLSTM
 
+from allennlp.modules import elmo
+
 # init model
 def weights_init(m):
     classname = m.__class__.__name__
@@ -33,14 +35,14 @@ def create_arg_parser():
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
     return parser
 
-def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad):
+def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, elmo_model_dir=None):
     emb_dim = 200
     h_dim = 200
     class_num = 2
     is_gpu = True
     if gpu == -1:
         is_gpu = False
-    bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec)
+    bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, elmo_model_dir=elmo_model_dir)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -48,8 +50,12 @@ def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad):
         print(m.__class__.__name__)
         weights_init(m)
 
-    for param in bilstm.word_embed.parameters():
-        param.requires_grad = emb_requires_grad
+    if elmo_model_dir==None and emb_requires_grad:
+        for param in bilstm.word_embed.parameters():
+            param.requires_grad = emb_requires_grad
+    else:
+        for param in bilstm.word_embed.parameters():
+            param.requires_grad = emb_requires_grad
 
     return bilstm
 
@@ -67,7 +73,7 @@ def translate_df_tensor(df_list, keys, argsort_index, gpu_id):
         vec = vec.cuda()
     return vec
 
-def translate_batch(batch, gpu, case):
+def translate_batch(batch, gpu, case, emb_type):
     x = batch[:, 0]
     y = batch[:, 1]
     files = batch[:, 2]
@@ -75,15 +81,21 @@ def translate_batch(batch, gpu, case):
     #0 paddingするために，長さで降順にソートする．
     argsort_index = np.array([i.shape[0] for i in x]).argsort()[::-1]
     max_length = x[argsort_index[0]].shape[0]
-    x_wordemb = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
-    x_wordemb = x_wordemb.reshape(batchsize, -1)
+    if emb_type == 'ELMo':
+        sentences = [i['単語'].values[4:] for i in batch[:, 0]]
+        x_wordID = elmo.batch_to_ids(sentences)
+        if gpu >= 0:
+            x_wordID = x_wordID.cuda()
+    else:
+        x_wordID = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
+        x_wordID = x_wordID.reshape(batchsize, -1)
     x_feature_emb_list = []
     for i in range(6):
         x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], argsort_index, gpu)
         x_feature_emb = x_feature_emb.reshape(batchsize, -1)
         x_feature_emb_list.append(x_feature_emb)
     x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is_target_verb', '述語からの距離'], argsort_index, gpu)
-    x = [x_wordemb, x_feature_emb_list, x_feature]
+    x = [x_wordID, x_feature_emb_list, x_feature]
 
     y = translate_df_tensor(y, [case], argsort_index, -1)
     y = y.reshape(batchsize)
@@ -112,9 +124,8 @@ def train(trains, vals, bilstm, args):
             bilstm.zero_grad()
             optimizer.zero_grad()
             batch = trains[perm[i:i+args.batch_size]]
-            x, y, _ = translate_batch(batch, args.gpu, args.case)
+            x, y, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
             batchsize = len(batch)
-
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
             pred = out.argmax(dim=2)[:, 1]
@@ -154,7 +165,7 @@ def test(tests, bilstm, args):
     for i in tqdm(range(0, N, args.batch_size), mininterval=5):
         batch = tests[i:i+args.batch_size]
         batchsize = len(batch)
-        x, y, files = translate_batch(batch, args.gpu, args.case)
+        x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -195,10 +206,8 @@ def save_model(epoch, bilstm, dump_dir, gpu):
 def main():
     parser = create_arg_parser()
     args = parser.parse_args()
-    is_bin = True
-    if args.emb_type == 'Random' or args.emb_type == 'ELMo':
-        is_bin = False
-    wv = WordVector(args.emb_path, is_bin)
+
+    wv = WordVector(args.emb_type, args.emb_path)
     is_intra = True
     if args.dataset_type == 'inter':
         is_intra = False
@@ -208,7 +217,10 @@ def main():
     args.__dict__['vals_size'] = len(vals)
     args.__dict__['tests_size'] = len(tests)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad)
+    elmo_model_dir = None
+    if args.emb_type == 'ELMo':
+        elmo_model_dir = args.emb_path
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, elmo_model_dir=elmo_model_dir)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
     train(trains, vals, bilstm, args)

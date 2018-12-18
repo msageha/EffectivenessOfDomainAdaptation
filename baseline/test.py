@@ -37,17 +37,19 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     load_config(args)
-    is_bin = True
-    if args.emb_type == 'Random' or args.emb_type == 'ELMo':
-        is_bin = False
-    wv = WordVector(args.emb_path, is_bin)
+
+    wv = WordVector(args.emb_type, args.emb_path)
     is_intra = True
     if args.dataset_type == 'inter':
         is_intra = False
     datasets = load_datasets(wv, is_intra, args.media)
     _, _, tests = split(datasets)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad)
+    elmo_model_dir = None
+    if args.emb_type == 'ELMo':
+        elmo_model_dir = args.emb_path
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, elmo_model_dir=elmo_model_dir)
+
     pprint(args.__dict__)
     val_results = max_acc_epochs_of_vals(args.load_dir)
     results = {}

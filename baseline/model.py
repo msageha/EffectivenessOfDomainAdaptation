@@ -2,13 +2,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from allennlp.modules.elmo import Elmo
 
 class BiLSTM(nn.Module):
-    def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True):
+    def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True, elmo_model_dir=None):
         super(BiLSTM, self).__init__()
         self.gpu = gpu
         self.h_dim = h_dim
-        self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
+        if emb_dim:
+            options_file = f'{elmo_model_dir}/options.json'
+            weight_file = f'{elmo_model_dir}/weights.hdf5'
+            self.word_embed = Elmo(options_file, weight_file, num_output_representations=1, dropout=0)
+            if gpu:
+                self.word_embed = self.word_embed.cuda()
+        else:
+            self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
         if v_vec is not None:
             v_vec = torch.tensor(v_vec)
             self.word_embed.weight.data.copy_(v_vec)
@@ -36,6 +44,8 @@ class BiLSTM(nn.Module):
     def forward(self, x):
         self.hidden = self.init_hidden(x[0].size(0))
         word_emb = self.word_embed(x[0])
+        if self.word_embed.__class__.__name__ == 'Elmo':
+            self.word_embed = self.word_embed['elmo_representations'][0]
         feature_emb_list = []
         for i, _x in enumerate(x[1]):
             feature_emb = self.feature_embed_layers[i](_x)

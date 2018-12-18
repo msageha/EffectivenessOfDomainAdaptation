@@ -6,8 +6,8 @@ import pickle
 import re
 
 class WordVector():
-    def __init__(self, path, is_bin=True):
-        if is_bin:
+    def __init__(self, path, emb_type):
+        if emb_type == 'Word2Vec' or emb_type == 'FastText':
             model = load_word_vector(path)
             self.index2word = ['padding'] + model.wv.index2word.copy()
             self.word2index = {word:i for i, word in enumerate(self.index2word)}
@@ -35,7 +35,7 @@ class WordVector():
             self.word2index['<exoX>'] = len(self.word2index)
             exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
             self.vectors = np.vstack((padding_vector, self.vectors, unk_vector, none_vector, exo1_vector, exo2_vector, exoX_vector))
-        else:
+        elif emb_type == 'Random':
             self.index2word = ['padding']
             with open(path, 'r') as f:
                 for line in f:
@@ -43,6 +43,13 @@ class WordVector():
                     self.index2word.append(word)
             self.word2index = {word:i for i, word in enumerate(self.index2word)}
             self.vectors = None
+        elif emb_type == 'ELMo':
+            self.index2word = ['<unk>']
+            self.word2index = {'<unk>':0}
+            self.vectors = None
+        else:
+            print(f'unexpected emb_type: {emb_type}. Please check it.')
+            return 0
 
 class FeatureToEmbedID:
     def __init__(self):
