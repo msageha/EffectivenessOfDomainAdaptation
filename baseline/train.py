@@ -167,24 +167,24 @@ def initialize_confusion_matrix():
     return df
 
 def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
-    actual_case_type = batch[1][f'{target_case}_dep']
-    if pred == 0:
-        pred_case_type = 'none'
-    elif pred == 1:
-        pred_case_type = 'exo1'
-    elif pred == 2:
-        pred_case_type = 'exo2'
-    elif pred == 3:
+    actual_case_type = _batch[1][f'{target_case}_dep']
+    if _pred == 0:
+        _pred_case_type = 'none'
+    elif _pred == 1:
+        _pred_case_type = 'exo1'
+    elif _pred == 2:
+        _pred_case_type = 'exo2'
+    elif _pred == 3:
         pred_case_type = 'exoX'
     else:
-        target_verb_index = batch[1].name
-        verb_phrase_number = batch[0]['n文節目'][target_verb_index]
-        pred_dependency_relation_phrase_number = batch[0]['係り先文節'][pred]
+        target_verb_index = _batch[1].name
+        verb_phrase_number = _batch[0]['n文節目'][target_verb_index]
+        pred_dependency_relation_phrase_number = _batch[0]['係り先文節'][_pred]
         if verb_phrase_number == pred_dependency_relation_phrase_number:
             pred_case_type = 'intra(dep)'
         else:
-            if 'n文目' in batch[0].keys():
-                if batch[0]['n文目'][target_verb_index] == batch[0]['n文目'][pred]:
+            if 'n文目' in _batch[0].keys():
+                if _batch[0]['n文目'][target_verb_index] == _batch[0]['n文目'][_pred]:
                     pred_case_type = 'intra(zero)'
                 else:
                     pred_case_type = 'inter(zero)'
