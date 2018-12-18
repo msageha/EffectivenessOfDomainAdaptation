@@ -54,6 +54,8 @@ class BiLSTM(nn.Module):
             exophora_emb = exophora_emb['elmo_representations'][0]
             exophora_emb = exophora_emb.reshape(3, -1)
             none_emb = torch.zeros(word_emb.shape[0], 1, exophora_emb.shape[1])
+            if self.gpu:
+                none_emb = none_emb.cuda()
             exophora_emb = exophora_emb.repeat([word_emb.shape[0], 1, 1])
             word_emb = torch.cat((none_emb, exophora_emb, word_emb), 1)
         feature_emb_list = []
