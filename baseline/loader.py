@@ -129,11 +129,11 @@ def case_tags_to_id(df, y, case):
     if is_num(y[case]):
         if (df['id'] == y[case]).sum():
             if sentence_start_id <= (df['id'] == y[case]).idxmax() and (df['id'] == y[case]).idxmax() <= sentence_end_id:
-                return (df['id'] == y[case]).idxmax(), 'intra_'
+                return (df['id'] == y[case]).idxmax(), 'intra'
             else:
-                return (df['id'] == y[case]).idxmax(), 'inter_'
+                return (df['id'] == y[case]).idxmax(), 'inter'
         else:
-            return 1, 'inter_' #文内ゼロの場合，文間ゼロ照応はexogと同じタグIDに．
+            return 1, 'inter' #文内ゼロの場合，文間ゼロ照応はexogと同じタグIDに．
     elif y[case] == 'exog':
         return 1, 'exog'
     elif y[case] == 'exo2':
@@ -173,7 +173,7 @@ def df_to_intra_vector(df, wv):
                 if y[f'{case}_dep'] == None:
                     y[f'{case}_dep'] = tag
                 else:
-                    y[f'{case}_dep'] = tag + y[f'{case}_dep']
+                    y[f'{case}_dep'] = tag + '(' + y[f'{case}_dep'] + ')'
             x = df.drop(labels=['id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文目', 'is文末'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
