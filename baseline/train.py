@@ -96,7 +96,7 @@ def translate_batch(batch, gpu, case, emb_type):
         x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], argsort_index, gpu)
         x_feature_emb = x_feature_emb.reshape(batchsize, -1)
         x_feature_emb_list.append(x_feature_emb)
-    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is_target_verb', '述語からの距離'], argsort_index, gpu)
+    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is機能語','is_target_verb', '述語からの距離'], argsort_index, gpu)
     x = [x_wordID, x_feature_emb_list, x_feature]
 
     y = translate_df_tensor(y, [case], argsort_index, -1)
@@ -172,6 +172,7 @@ def test(tests, bilstm, args):
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
         pred = out.argmax(dim=2)[:, 1]
+        import ipdb; ipdb.set_trace();
         for i, file in enumerate(files):
             correct = pred[i].eq(y[i].argmax()).item()
             domain = return_file_domain(file)

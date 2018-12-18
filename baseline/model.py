@@ -30,7 +30,7 @@ class BiLSTM(nn.Module):
             feature_embed_layers.append(feature_embed)
         self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
 
-        self.lstm = nn.LSTM(input_size=emb_dim+35, hidden_size=h_dim, batch_first=batch_first, bidirectional=True)
+        self.lstm = nn.LSTM(input_size=emb_dim+36, hidden_size=h_dim, batch_first=batch_first, bidirectional=True)
         self.l1 = nn.Linear(h_dim*2, n_labels)
 
     def init_hidden(self, b_size):
