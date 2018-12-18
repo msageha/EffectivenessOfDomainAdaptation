@@ -188,7 +188,7 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
             else:
                 if 'n文目' in _batch[0].keys():
                     if _batch[0]['n文目'][target_verb_index] == _batch[0]['n文目'][_pred]:
-                    pred_case_type = 'intra(zero)'
+                        pred_case_type = 'intra(zero)'
                     else:
                         pred_case_type = 'inter(zero)'
                 else:
