@@ -190,7 +190,7 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
                     pred_case_type = 'inter(zero)'
             else:
                 pred_case_type = 'intra(zero)'
-    confusion_matrix['actual'][actual_case_type]['pred'][pred_case_type] += 1
+    confusion_matrix['actual'][actual_case_type]['predicted'][pred_case_type] += 1
 
 def test(tests, bilstm, args):
     results = defaultdict(lambda: defaultdict(float))
