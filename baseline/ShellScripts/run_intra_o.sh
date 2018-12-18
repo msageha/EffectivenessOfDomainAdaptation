@@ -11,11 +11,10 @@ module load cuda/9.0.176 cudnn/7.1 gnuplot
 source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/baseline/
 # python3 train.py --type "intra" --epochs 10 --emb_type Random --emb_path "train_words.txt" --gpu 0 --case "o" --dump_dir "intra/Random_Fix/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_OC.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All_OC/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_OY.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All_OY/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_OW.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All_OW/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_PB.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All_PB/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_PM.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All_PM/o" --emb_requires_grad_false
-python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/All_PN.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/All_PN/o" --emb_requires_grad_false
+python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/OC.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/OC/o" --emb_requires_grad_false
+python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/OY.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/OY/o" --emb_requires_grad_false
+python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/OW.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/OW/o" --emb_requires_grad_false
+python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/PB.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/PB/o" --emb_requires_grad_false
+python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/PM.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/PM/o" --emb_requires_grad_false
+python3 train.py --type "intra" --epochs 10 --emb_type Word2Vec --emb_path "../../data/embedding/Word2Vec/PN.bin" --gpu 0 --case "o" --dump_dir "intra/Word2Vec/PN/o" --emb_requires_grad_false
 # python3 train.py --type "intra" --epochs 10 --emb_type FastText --emb_path "../../data/embedding/FastText/All.bin" --gpu 0 --case "o" --dump_dir "intra/FastText_Fix/All/o" --emb_requires_grad_false
