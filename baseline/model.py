@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from allennlp.modules.elmo import Elmo
+from allennlp.modules.elmo import Elmo, batch_to_ids
 
 class BiLSTM(nn.Module):
     def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True, elmo_model_dir=None):
@@ -45,7 +45,17 @@ class BiLSTM(nn.Module):
         self.hidden = self.init_hidden(x[0].size(0))
         word_emb = self.word_embed(x[0])
         if self.word_embed.__class__.__name__ == 'Elmo':
-            self.word_embed = self.word_embed['elmo_representations'][0]
+            exophoras = [['私'], ['あなた'], ['これ']]
+            exophora_ids = batch_to_ids(exophoras)
+            if self.gpu:
+                exophora_ids = exophora_ids.cuda()
+            exophora_emb = self.word_embed(exophora_ids)
+            word_emb = word_emb['elmo_representations'][0]
+            exophora_emb = exophora_emb['elmo_representations'][0]
+            exophora_emb = exophora_emb.reshape(3, -1)
+            none_emb = torch.zeros(word_emb.shape[0], 1, exophora_emb.shape[1])
+            exophora_emb = exophora_emb.repeat([word_emb.shape[0], 1, 1])
+            word_emb = torch.cat((none_emb, exophora_emb, word_emb), 1)
         feature_emb_list = []
         for i, _x in enumerate(x[1]):
             feature_emb = self.feature_embed_layers[i](_x)

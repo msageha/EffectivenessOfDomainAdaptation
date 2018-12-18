@@ -6,7 +6,7 @@ import pickle
 import re
 
 class WordVector():
-    def __init__(self, path, emb_type):
+    def __init__(self, emb_type, path=None):
         if emb_type == 'Word2Vec' or emb_type == 'FastText':
             model = load_word_vector(path)
             self.index2word = ['padding'] + model.wv.index2word.copy()
