@@ -35,14 +35,19 @@ def create_arg_parser():
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
     return parser
 
-def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, elmo_model_dir=None):
+def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
     emb_dim = 200
     h_dim = 200
     class_num = 2
     is_gpu = True
     if gpu == -1:
         is_gpu = False
-    bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, elmo_model_dir=elmo_model_dir)
+    if args.emb_type == 'ELMo':
+        elmo_model_dir = args.emb_path
+        emb_dim = int(args.emb_path.split('/')[-1])
+        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, elmo_model_dir=args.emb_path)
+    else:
+        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -50,10 +55,7 @@ def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, elmo_model_dir=N
         print(m.__class__.__name__)
         weights_init(m)
 
-    if elmo_model_dir==None and emb_requires_grad:
-        for param in bilstm.word_embed.parameters():
-            param.requires_grad = emb_requires_grad
-    else:
+    if args.emb_type != 'ELMo':
         for param in bilstm.word_embed.parameters():
             param.requires_grad = emb_requires_grad
 
@@ -217,10 +219,7 @@ def main():
     args.__dict__['vals_size'] = len(vals)
     args.__dict__['tests_size'] = len(tests)
 
-    elmo_model_dir = None
-    if args.emb_type == 'ELMo':
-        elmo_model_dir = args.emb_path
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, elmo_model_dir=elmo_model_dir)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, args)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
     train(trains, vals, bilstm, args)

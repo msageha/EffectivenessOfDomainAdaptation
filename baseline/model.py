@@ -9,7 +9,7 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
         self.gpu = gpu
         self.h_dim = h_dim
-        if emb_dim:
+        if elmo_model_dir:
             options_file = f'{elmo_model_dir}/options.json'
             weight_file = f'{elmo_model_dir}/weights.hdf5'
             self.word_embed = Elmo(options_file, weight_file, num_output_representations=1, dropout=0)
