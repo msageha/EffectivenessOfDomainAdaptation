@@ -71,7 +71,7 @@ def line_to_df(line):
     return df
 
 def document_to_df(document):
-    df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', 'is主辞', 'n文目', 'is文末'])
+    df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末'])
     n_words = 0
     n_phrase = -1 #スタート時インクリメントされるため
     n_words_from_phrase = 0
@@ -81,7 +81,11 @@ def document_to_df(document):
             continue
         elif line[0] == '*':
             head_word_number = int(line.split()[3].split('/')[0])
+            function_word_number = int(line.split()[3].split('/')[1])
             n_phrase += 1
+            if n_phrase != int(line.split()[1]):
+                print('Error!!!!')
+            dependency_relation_phrase = line.split()[2]
             n_words_from_phrase = 0
         elif line == 'EOS':
             n_sentence += 1
@@ -94,9 +98,14 @@ def document_to_df(document):
             is_head = False
             if n_words_from_phrase == head_word_number:
                 is_head = True
+            is_function = False
+            if n_words_from_phrase == function_word_number:
+                is_function = True
             _df['n単語目'] = n_words
             _df['n文節目'] = n_phrase
+            _df['係り先文節'] = dependency_relation_phrase
             _df['is主辞'] = is_head
+            _df['is機能語'] = is_function
             _df['n文目'] = n_sentence
             _df['is文末'] = False
             n_words += 1 
