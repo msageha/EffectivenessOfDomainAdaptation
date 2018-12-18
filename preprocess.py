@@ -73,24 +73,20 @@ def line_to_df(line):
 def document_to_df(document):
     df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末'])
     n_words = 0
-    n_phrase = -1 #スタート時インクリメントされるため
     n_words_from_phrase = 0
     n_sentence = 0
     for i, line in enumerate(document.split('\n')):
         if line == '':
             continue
         elif line[0] == '*':
+            n_phrase int(line.split()[1])
+            dependency_relation_phrase = line.split()[2]
             head_word_number = int(line.split()[3].split('/')[0])
             function_word_number = int(line.split()[3].split('/')[1])
-            n_phrase += 1
-            if n_phrase != int(line.split()[1]):
-                print('Error!!!!')
-            dependency_relation_phrase = line.split()[2]
             n_words_from_phrase = 0
         elif line == 'EOS':
             n_sentence += 1
             n_words = 0
-            n_phrase = -1
             i = df.columns.get_loc('is文末')
             df.iloc[-1, i] = True
         else:
