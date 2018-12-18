@@ -188,7 +188,7 @@ def test(tests, bilstm, args):
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
     for domain in sorted(results.keys()):
-        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]/100}\tacc: {results[domain]["acc"]/100}')
+        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tacc: {results[domain]["acc"]}')
     return results
 
 def return_file_domain(file):
