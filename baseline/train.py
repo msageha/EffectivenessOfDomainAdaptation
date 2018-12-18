@@ -219,7 +219,7 @@ def main():
     args.__dict__['vals_size'] = len(vals)
     args.__dict__['tests_size'] = len(tests)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, args)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
     train(trains, vals, bilstm, args)
