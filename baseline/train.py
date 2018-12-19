@@ -25,9 +25,10 @@ def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--type', dest='dataset_type', required=True, choices=['intra', 'inter'], help='dataset: "intra" or "inter"')
     parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=10, help='max epoch')
-    parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'FastText', 'ELMo', 'Random'], help='word embedding type')
+    parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'FastText', 'ELMo', 'Random', 'ELMoForManyLangs'], help='word embedding type')
     parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
     parser.add_argument('--emb_requires_grad_false', dest='emb_requires_grad', action='store_false', help='fixed word embedding or not')
+    parser.add_argument('--emb_dim', type=int, default=200, help='word embedding dimension')
     parser.add_argument('--gpu', '-g', dest='gpu', type=int, default=-1, help='GPU ID for execution')
     parser.add_argument('--batch', '-b', dest='batch_size', type=int, default=16, help='mini batch size')
     parser.add_argument('--case', '-c', dest='case', type=str, required=True, choices=['ga', 'o', 'ni'], help='target "case" type')
@@ -36,18 +37,18 @@ def create_arg_parser():
     return parser
 
 def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
-    emb_dim = 200
+    emb_dim = args.emb_dim
     h_dim = 200
     class_num = 2
     is_gpu = True
     if gpu == -1:
         is_gpu = False
-    if args.emb_type == 'ELMo':
+    if args.emb_type == 'ELMo' or args.emb_type == 'ELMoForManyLangs':
         elmo_model_dir = args.emb_path
         emb_dim = int(args.emb_path.split('/')[-1])
-        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, elmo_model_dir=args.emb_path)
+        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type, elmo_model_dir=args.emb_path)
     else:
-        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec)
+        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -88,6 +89,9 @@ def translate_batch(batch, gpu, case, emb_type):
         x_wordID = elmo.batch_to_ids(sentences)
         if gpu >= 0:
             x_wordID = x_wordID.cuda()
+    elif emb_type == 'ELMoForManyLangs':
+        sentences = [i['単語'].values[4:] for i in batch[:, 0]]
+        x_wordID = sentences
     else:
         x_wordID = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
         x_wordID = x_wordID.reshape(batchsize, -1)
@@ -151,13 +155,14 @@ def train(trains, vals, bilstm, args):
     best_epochs = defaultdict(lambda: defaultdict(float))
     for epoch in results:
         for domain in sorted(results[epoch].keys()):
-            if results[epoch][domain]['acc'] > best_epochs[domain]['acc']:
+            if results[epoch][domain]['F1']['F1-score']['total'] > best_epochs[domain]['F1-score(total)']:
+                best_epochs[domain]['F1-score(total)'] = results[epoch][domain]['F1']['F1-score']['total']
                 best_epochs[domain]['acc'] = results[epoch][domain]['acc']
                 best_epochs[domain]['epoch'] = epoch
     dump_dic(best_epochs, args.dump_dir, 'training_result.json')
-    print('--- finish training ---\n--- best epochs for each domain ---')
+    print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
-        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tacc: {best_epochs[domain]["acc"]}')
+        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]['F1-score(total)']}\tacc: {best_epochs[domain]["acc"]}')
 
 def initialize_confusion_matrix():
     case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
@@ -260,7 +265,6 @@ def test(tests, bilstm, args):
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tacc: {results[domain]["acc"]}')
-    import ipdb; ipdb.set_trace();
     return results
 
 def return_file_domain(file):

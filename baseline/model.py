@@ -2,19 +2,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from allennlp.modules.elmo import Elmo, batch_to_ids
 
 class BiLSTM(nn.Module):
-    def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True, elmo_model_dir=None):
+    def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True, emb_type=None, elmo_model_dir=None):
         super(BiLSTM, self).__init__()
         self.gpu = gpu
         self.h_dim = h_dim
-        if elmo_model_dir:
+        if emb_type=='ELMo':
+            from allennlp.modules.elmo import Elmo, batch_to_ids
             options_file = f'{elmo_model_dir}/options.json'
             weight_file = f'{elmo_model_dir}/weights.hdf5'
             self.word_embed = Elmo(options_file, weight_file, num_output_representations=1, dropout=0)
             if gpu:
                 self.word_embed = self.word_embed.cuda()
+        elif emb_type=='ELMoForManyLangs':
+            from elmoformanylangs import Embedder
+            e = Embedder(elmo_model_dir)
+            self.word_embed = e.sents2elmo
         else:
             self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
         if v_vec is not None:
@@ -44,7 +48,9 @@ class BiLSTM(nn.Module):
     def forward(self, x):
         self.hidden = self.init_hidden(x[0].size(0))
         word_emb = self.word_embed(x[0])
-        if self.word_embed.__class__.__name__ == 'Elmo':
+        if self.word_embed.__class__.__name__ == 'Embedding':
+            pass
+        elif self.word_embed.__class__.__name__ == 'Elmo':
             exophoras = [['私'], ['あなた'], ['これ']]
             exophora_ids = batch_to_ids(exophoras)
             if self.gpu:
@@ -53,10 +59,23 @@ class BiLSTM(nn.Module):
             word_emb = word_emb['elmo_representations'][0]
             exophora_emb = exophora_emb['elmo_representations'][0]
             exophora_emb = exophora_emb.reshape(3, -1)
-            none_emb = torch.zeros(word_emb.shape[0], 1, exophora_emb.shape[1])
+            exophora_emb = exophora_emb.repeat([word_emb.shape[0], 1, 1])
+            none_emb = torch.zeros(word_emb.shape[0], 1, word_emb.shape[2])
             if self.gpu:
                 none_emb = none_emb.cuda()
+            word_emb = torch.cat((none_emb, exophora_emb, word_emb), 1)
+        elif self.word_embed.__func__.__name__ == 'sents2elmo':
+            word_emb = [torch.tensor(emb) for emb in word_emb]
+            word_emb = nn.utils.rnn.pad_sequence(word_emb, batch_first=True, padding_value=0)
+            exophoras = [['私'], ['あなた'], ['これ']]
+            exophora_emb = word_embed(exophoras)
+            exophora_emb = torch.tensor(exophora_emb).reshape(3, -1)
             exophora_emb = exophora_emb.repeat([word_emb.shape[0], 1, 1])
+            none_emb = torch.zeros(word_emb.shape[0], 1, word_emb.shape[2])
+            if self.gpu:
+                word_emb = word_emb.cuda()
+                exophora_emb = exophora_emb.cuda()
+                none_emb = none_emb.cuda()
             word_emb = torch.cat((none_emb, exophora_emb, word_emb), 1)
         feature_emb_list = []
         for i, _x in enumerate(x[1]):

@@ -43,7 +43,7 @@ class WordVector():
                     self.index2word.append(word)
             self.word2index = {word:i for i, word in enumerate(self.index2word)}
             self.vectors = None
-        elif emb_type == 'ELMo':
+        elif emb_type == 'ELMo' or emb_type == 'ELMoForManyLangs':
             self.index2word = ['<unk>']
             self.word2index = {'<unk>':0}
             self.vectors = None
