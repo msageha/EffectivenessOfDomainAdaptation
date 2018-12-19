@@ -44,8 +44,6 @@ def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
     if gpu == -1:
         is_gpu = False
     if args.emb_type == 'ELMo' or args.emb_type == 'ELMoForManyLangs':
-        elmo_model_dir = args.emb_path
-        emb_dim = int(args.emb_path.split('/')[-1])
         bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type, elmo_model_dir=args.emb_path)
     else:
         bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type)
