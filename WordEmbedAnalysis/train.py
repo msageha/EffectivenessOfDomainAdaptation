@@ -1,9 +1,5 @@
-import sys
-sys.path.append('../utils')
-from loader import WordVector, load_datasets, split
-from model import BiLSTM
-
 import argparse
+from allennlp.modules import elmo
 from collections import defaultdict
 import json
 import numpy as np
@@ -15,7 +11,10 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from allennlp.modules import elmo
+import sys
+sys.path.append('../utils')
+from loader import WordVector, load_datasets, split
+from model import BiLSTM
 
 # init model
 def weights_init(m):
