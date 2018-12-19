@@ -82,15 +82,13 @@ def translate_batch(batch, gpu, case, emb_type):
     #0 paddingするために，長さで降順にソートする．
     argsort_index = np.array([i.shape[0] for i in x]).argsort()[::-1]
     max_length = x[argsort_index[0]].shape[0]
+    sentences = [i['単語'].values[4:] for i in batch[:, 0]]
+    sentences = np.array(sentences)[argsort_index]
     if emb_type == 'ELMo':
-        sentences = [i['単語'].values[4:] for i in batch[:, 0]]
-        sentences = np.array(sentences)[argsort_index]
         x_wordID = elmo.batch_to_ids(sentences)
         if gpu >= 0:
             x_wordID = x_wordID.cuda()
     elif emb_type == 'ELMoForManyLangs':
-        sentences = [i['単語'].values[4:] for i in batch[:, 0]]
-        sentences = np.array(sentences)[argsort_index]
         x_wordID = sentences
     else:
         x_wordID = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
@@ -110,7 +108,7 @@ def translate_batch(batch, gpu, case, emb_type):
         y = y.cuda()
 
     files = files[argsort_index]
-    return x, y, files
+    return x, y, files, sentences
 
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
@@ -130,7 +128,7 @@ def train(trains, vals, bilstm, args):
             bilstm.zero_grad()
             optimizer.zero_grad()
             batch = trains[perm[i:i+args.batch_size]]
-            x, y, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
+            x, y, _, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
             batchsize = len(batch)
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -232,7 +230,7 @@ def test(tests, bilstm, args):
     for i in tqdm(range(0, N, args.batch_size), mininterval=5):
         batch = tests[i:i+args.batch_size]
         batchsize = len(batch)
-        x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
+        x, y, files, sentences = translate_batch(batch, args.gpu, args.case, args.emb_type)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -245,6 +243,9 @@ def test(tests, bilstm, args):
             loss = criterion(out[i].reshape(1, 2, -1), y[i].reshape(1, -1))
             results[domain]['loss'] += loss.item()
             calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
+
+        import ipdb; ipdb.set_trace();
+        
     for domain in args.media:
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
