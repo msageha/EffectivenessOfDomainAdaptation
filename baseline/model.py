@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from allennlp.modules.elmo import Elmo, batch_to_ids
+from elmoformanylangs import Embedder
 
 class BiLSTM(nn.Module):
     def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True, emb_type=None, elmo_model_dir=None):
@@ -16,7 +17,6 @@ class BiLSTM(nn.Module):
             if gpu:
                 self.word_embed = self.word_embed.cuda()
         elif emb_type=='ELMoForManyLangs':
-            from elmoformanylangs import Embedder
             e = Embedder(elmo_model_dir)
             self.word_embed = e.sents2elmo
         else:
