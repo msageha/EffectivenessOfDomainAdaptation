@@ -18,17 +18,20 @@ def get_eq_tag(text):
 def get_ga_tag(text):
     ids = []
     for m in re.finditer(r'ga="(.+?)"', text):
-        ids.append(m.group(1))
+        if m.group(1) != 'ana_cla':
+            ids.append(m.group(1))
     return ','.join(ids)
 def get_o_tag(text):
     ids = []
     for m in re.finditer(r'o="(.+?)"', text):
-        ids.append(m.group(1))
+        if m.group(1) != 'ana_cla':
+            ids.append(m.group(1))
     return ','.join(ids)
 def get_ni_tag(text):
     ids = []
     for m in re.finditer(r' ni="(.+?)"', text):
-        ids.append(m.group(1))
+        if m.group(1) != 'ana_cla':
+            ids.append(m.group(1))
     return ','.join(ids)
 # def get_ga_dep_tag(text):
 #     m = re.search(r'ga_dep="(.+?)"', text)
