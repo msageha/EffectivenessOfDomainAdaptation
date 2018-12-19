@@ -66,9 +66,9 @@ def dump_dic(dic, dump_dir, file_name):
     with open(f'./{dump_dir}/{file_name}', 'w') as f:
         json.dump(dic, f, indent=2)
 
-def translate_df_tensor(df_list, keys, argsort_index, gpu_id):
+def translate_df_tensor(df_list, keys, gpu_id):
     vec = [np.array(i[keys], dtype=np.int) for i in df_list]
-    vec = np.array(vec)[argsort_index]
+    vec = np.array(vec)
     vec = [torch.tensor(i) for i in vec]
     vec = nn.utils.rnn.pad_sequence(vec, batch_first=True, padding_value=0)
     if gpu_id >= 0:
@@ -80,11 +80,10 @@ def translate_batch(batch, gpu, case, emb_type):
     y = batch[:, 1]
     files = batch[:, 2]
     batchsize = len(batch)
-    #0 paddingするために，長さで降順にソートする．
-    argsort_index = np.array([i.shape[0] for i in x]).argsort()[::-1]
-    max_length = x[argsort_index[0]].shape[0]
+
+    max_length = x[0].shape[0]
     sentences = [i['単語'].values[4:] for i in batch[:, 0]]
-    sentences = np.array(sentences)[argsort_index]
+    sentences = np.array(sentences)
     if emb_type == 'ELMo':
         x_wordID = elmo.batch_to_ids(sentences)
         if gpu >= 0:
@@ -92,24 +91,23 @@ def translate_batch(batch, gpu, case, emb_type):
     elif emb_type == 'ELMoForManyLangs':
         x_wordID = sentences
     else:
-        x_wordID = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
+        x_wordID = translate_df_tensor(x, ['単語ID'], gpu)
         x_wordID = x_wordID.reshape(batchsize, -1)
     x_feature_emb_list = []
     for i in range(6):
-        x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], argsort_index, gpu)
+        x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], gpu)
         x_feature_emb = x_feature_emb.reshape(batchsize, -1)
         x_feature_emb_list.append(x_feature_emb)
-    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is機能語','is_target_verb', '述語からの距離'], argsort_index, gpu)
+    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is機能語','is_target_verb', '述語からの距離'], gpu)
     x = [x_wordID, x_feature_emb_list, x_feature]
 
-    y = translate_df_tensor(y, [case], argsort_index, -1)
+    y = translate_df_tensor(y, [case], -1)
     y = y.reshape(batchsize)
     y = torch.eye(max_length, dtype=torch.long)[y]
     if gpu >= 0:
         y = y.cuda()
 
-    files = files[argsort_index]
-    return x, y, files, sentences
+    return x, y, files
 
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
@@ -129,7 +127,10 @@ def train(trains, vals, bilstm, args):
             bilstm.zero_grad()
             optimizer.zero_grad()
             batch = trains[perm[i:i+args.batch_size]]
-            x, y, _, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
+            #0 paddingするために，長さで降順にソートする．
+            argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
+            batch = batch[argsort_index]
+            x, y, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
             batchsize = len(batch)
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -142,7 +143,7 @@ def train(trains, vals, bilstm, args):
             running_loss += loss.item()
 
         print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/args.batch_size)}\tacc: {running_correct/running_samples}')
-        _results = test(vals, bilstm, args)
+        _results, _ = test(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
     dump_dic(results, args.dump_dir, 'training_logs.json')
@@ -219,8 +220,34 @@ def calculate_f1(confusion_matrix):
     df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
     return df
 
+def predicted_log(batch, pred, target_case, dump_dir):
+    batchsize = len(batch)
+    for i in range(batchsize):
+        target_verb_index = batch[i][1].name
+        predicted_argument_index = pred[i].item()
+        actual_argument_index = batch[i][1][target_case]
+        target_verb = batch[i][0]['単語'][target_verb_index]
+        predicted_argument = batch[i][0]['単語'][predicted_argument_index]
+        actual_argument = batch[i][0]['単語'][actual_argument_index]
+        sentence = ' '.join(batch[i][0]['単語'][4:])
+        file = batch[i][2]
+        log = {
+            '述語位置': target_verb_index - 4,
+            '述語': target_verb,
+            '正解項位置': actual_argument_index - 4,
+            '正解項': actual_argument,
+            '予測項位置': predicted_argument_index - 4,
+            '予測項': predicted_argument,
+            '解析対象文': sentence,
+            'ファイル': file
+        }
+        domain = return_file_domain(file)
+        yield domain, log
+
+
 def test(tests, bilstm, args):
     results = defaultdict(lambda: defaultdict(float))
+    logs = defaultdict(list)
     for domain in args.media:
         results[domain]['confusion_matrix'] = initialize_confusion_matrix()
     results['All']['confusion_matrix'] = initialize_confusion_matrix()
@@ -231,7 +258,11 @@ def test(tests, bilstm, args):
     for i in tqdm(range(0, N, args.batch_size), mininterval=5):
         batch = tests[i:i+args.batch_size]
         batchsize = len(batch)
-        x, y, files, sentences = translate_batch(batch, args.gpu, args.case, args.emb_type)
+
+        #0 paddingするために，長さで降順にソートする．
+        argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
+        batch = batch[argsort_index]
+        x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -245,8 +276,9 @@ def test(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
 
-        import ipdb; ipdb.set_trace();
-        
+        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir)
+            logs[domain].append(log)
+
     for domain in args.media:
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
@@ -262,7 +294,7 @@ def test(tests, bilstm, args):
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc: {results[domain]["acc"]}')
-    return results
+    return results, logs
 
 def return_file_domain(file):
     domain_dict = {'PM':'雑誌','PN':'新聞', 'OW':'白書', 'OC':'Yahoo!知恵袋', 'OY':'Yahoo!ブログ', 'PB':'書籍'}

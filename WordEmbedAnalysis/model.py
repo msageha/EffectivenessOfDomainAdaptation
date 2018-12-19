@@ -51,7 +51,7 @@ class BiLSTM(nn.Module):
         if self.word_embed.__class__.__name__ == 'Embedding':
             pass
         elif self.word_embed.__class__.__name__ == 'Elmo':
-            exophoras = [['私'], ['あなた'], ['これ']]
+            exophoras = [['これ'], ['あなた'], ['私']]
             exophora_ids = batch_to_ids(exophoras)
             if self.gpu:
                 exophora_ids = exophora_ids.cuda()
@@ -67,7 +67,7 @@ class BiLSTM(nn.Module):
         elif self.word_embed.__func__.__name__ == 'sents2elmo':
             word_emb = [torch.tensor(emb) for emb in word_emb]
             word_emb = nn.utils.rnn.pad_sequence(word_emb, batch_first=True, padding_value=0)
-            exophoras = [['私'], ['あなた'], ['これ']]
+            exophoras = [['これ'], ['あなた'], ['私']]
             exophora_emb = self.word_embed(exophoras)
             exophora_emb = torch.tensor(exophora_emb).reshape(3, -1)
             exophora_emb = exophora_emb.repeat([word_emb.shape[0], 1, 1])

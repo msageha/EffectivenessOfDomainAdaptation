@@ -36,6 +36,17 @@ def max_acc_epochs_of_vals(train_result_path):
         val_results = json.load(f)
     return val_results
 
+def dump_predict_logs(logs, dump_dir):
+    os.makedirs(f'./{dump_dir}/predicts/', exist_ok=True)
+    for domain in logs.keys():
+        with open(f'{dump_dir}/predicts/{domain}.tsv', 'w') as f:
+            f.write('\t'.join(log.keys()))
+            f.write('\n')
+            for log in logs[domain]:
+                values = [str(value) for value in log.values()]
+                f.write('\t'.join(values))
+                f.write('\n')
+
 def main():
     parser = create_arg_parser()
     args = parser.parse_args()
@@ -53,19 +64,23 @@ def main():
     pprint(args.__dict__)
     val_results = max_acc_epochs_of_vals(args.load_dir)
     results = {}
+    logs = {}
     domain = 'All'
     epoch = val_results[domain]['epoch']
     load_model(epoch, bilstm, args.load_dir, args.gpu)
-    _results = test(tests, bilstm, args)
+    _results, _logs = test(tests, bilstm, args)
     results[domain] = _results[domain]
     results[domain]['epoch'] = epoch
+    logs[domain] = _logs[domain]
     for domain in args.media:
         epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
         _results = test(tests, bilstm, args)
         results[domain] = _results[domain]
         results[domain]['epoch'] = epoch
+        logs[domain] = _logs[domain]
     dump_dic(results, args.load_dir, 'test_logs.json')
+    dump_predict_logs(logs, args.load_dir)
 
 if __name__ == '__main__':
     main()

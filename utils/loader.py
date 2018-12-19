@@ -178,6 +178,8 @@ def df_to_intra_vector(df, wv):
                     y[f'{case}_dep'] = tag
                 else:
                     y[f'{case}_dep'] = tag + '(' + y[f'{case}_dep'] + ')'
+                    if y[f'{case}_dep'] == 'inter(dep)':
+                        import ipdb; ipdb.set_trace();
             x = df.drop(labels=['id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文目', 'is文末'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
