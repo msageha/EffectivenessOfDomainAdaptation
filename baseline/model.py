@@ -46,7 +46,7 @@ class BiLSTM(nn.Module):
         return (h0, c0)
 
     def forward(self, x):
-        self.hidden = self.init_hidden(x[0].size(0))
+        self.hidden = self.init_hidden(x[2].size(0))
         word_emb = self.word_embed(x[0])
         if self.word_embed.__class__.__name__ == 'Embedding':
             pass
