@@ -276,7 +276,7 @@ def test(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
 
-        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir)
+        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir):
             logs[domain].append(log)
 
     for domain in args.media:
