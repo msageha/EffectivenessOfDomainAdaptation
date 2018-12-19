@@ -17,19 +17,19 @@ case=(ga)
 type=intra
 emb_type=ELMo
 emb_path='../../data/embedding/ELMo/1024'
-emb_file_name=1024
+emb_dim=1024
 parallel --dry-run "\
-    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_file_name/{}
-    python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_file_name/{}
+    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_dim/{}
+    python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_dim/{} --emb_dim $emb_dim
     " ::: ${case[@]}
 
 
-case=(ga)
-type=intra
-emb_type=Random
-emb_path='./train_words.txt'
-emb_file_name=200
-parallel --dry-run "\
-    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_file_name/{}
-    python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_file_name/{}
-    " ::: ${case[@]}
+# case=(ga)
+# type=intra
+# emb_type=Random
+# emb_path='./train_words.txt'
+# emb_file_name=200
+# parallel --dry-run "\
+#     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_file_name/{}
+#     python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_file_name/{}
+#     " ::: ${case[@]}

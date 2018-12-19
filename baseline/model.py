@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from allennlp.modules.elmo import Elmo, batch_to_ids
 
 class BiLSTM(nn.Module):
     def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True, emb_type=None, elmo_model_dir=None):
@@ -9,7 +10,6 @@ class BiLSTM(nn.Module):
         self.gpu = gpu
         self.h_dim = h_dim
         if emb_type=='ELMo':
-            from allennlp.modules.elmo import Elmo, batch_to_ids
             options_file = f'{elmo_model_dir}/options.json'
             weight_file = f'{elmo_model_dir}/weights.hdf5'
             self.word_embed = Elmo(options_file, weight_file, num_output_representations=1, dropout=0)

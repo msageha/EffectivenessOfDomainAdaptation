@@ -24,7 +24,7 @@ def weights_init(m):
 def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--type', dest='dataset_type', required=True, choices=['intra', 'inter'], help='dataset: "intra" or "inter"')
-    parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=10, help='max epoch')
+    parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=20, help='max epoch')
     parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'FastText', 'ELMo', 'Random', 'ELMoForManyLangs'], help='word embedding type')
     parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
     parser.add_argument('--emb_requires_grad_false', dest='emb_requires_grad', action='store_false', help='fixed word embedding or not')
