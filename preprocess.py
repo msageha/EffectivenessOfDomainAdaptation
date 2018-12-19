@@ -82,7 +82,7 @@ def document_to_df(document):
         if line == '':
             continue
         elif line[0] == '*':
-            n_phrase int(line.split()[1])
+            n_phrase = int(line.split()[1])
             dependency_relation_phrase = line.split()[2]
             head_word_number = int(line.split()[3].split('/')[0])
             function_word_number = int(line.split()[3].split('/')[1])
