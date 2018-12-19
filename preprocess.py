@@ -107,6 +107,7 @@ def decision_case_type(df, case_id, verb_index):
     elif case_id == '':
         return 'none'
     else:
+        import ipdb; ipdb.set_trace();
         print('Error!!!')
 
 def search_verbs(df):

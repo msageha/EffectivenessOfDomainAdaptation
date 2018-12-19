@@ -23,7 +23,7 @@ parallel --dry-run "\
     python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_dim/{}
     " ::: ${case[@]}
 
-
+ python3 train.py --type intra --emb_type ELMoForManyLangs --emb_path '../../data/embedding/ELMoForManyLangs/Japanese/' --gpu 0 --case ga --dump_dir ELMoForManyLangs --emb_dim 1024 --epochs 30
 # case=(ga)
 # type=intra
 # emb_type=Random
