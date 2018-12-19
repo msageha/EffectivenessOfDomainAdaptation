@@ -196,7 +196,7 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
     confusion_matrix['actual'][actual_case_type]['predicted'][pred_case_type] += 1
 
 def calculate_f1(confusion_matrix):
-    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)', '全体']
+    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
     columns = ['precision', 'recall', 'F1-score']
     df = pd.DataFrame(data=0.0, index=case_types, columns=columns)
     for case_type in case_types:
@@ -214,9 +214,10 @@ def calculate_f1(confusion_matrix):
         all_tp += confusion_matrix['actual', case_type]['predicted', case_type]
         all_fp += sum(confusion_matrix.loc['predicted', case_type])
         all_fn += sum(confusion_matrix['actual', case_type])
-    df['precision']['全体'] = all_tp/(all_tp+all_fp)
-    df['recall']['全体'] = all_tp/(all_tp+all_fn)
-    df['F1-score']['全体'] = (2*df['precision']['全体']*df['recall']['全体'])/(df['precision']['全体']+df['recall']['全体'])
+    df.loc['total'] = 0
+    df['precision']['total'] = all_tp/(all_tp+all_fp)
+    df['recall']['total'] = all_tp/(all_tp+all_fn)
+    df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
     return df
 
 def test(tests, bilstm, args):
