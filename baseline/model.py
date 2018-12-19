@@ -68,7 +68,7 @@ class BiLSTM(nn.Module):
             word_emb = [torch.tensor(emb) for emb in word_emb]
             word_emb = nn.utils.rnn.pad_sequence(word_emb, batch_first=True, padding_value=0)
             exophoras = [['私'], ['あなた'], ['これ']]
-            exophora_emb = word_embed(exophoras)
+            exophora_emb = self.word_embed(exophoras)
             exophora_emb = torch.tensor(exophora_emb).reshape(3, -1)
             exophora_emb = exophora_emb.repeat([word_emb.shape[0], 1, 1])
             none_emb = torch.zeros(word_emb.shape[0], 1, word_emb.shape[2])
