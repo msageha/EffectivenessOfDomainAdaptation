@@ -10,7 +10,7 @@ module load cuda/9.0.176 cudnn/7.1 gnuplot
 
 # 自分のAnacondaとかjumanとか読ませるため
 source /home/2/17M30683/.bash_profile
-cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/baseline/
+cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/WordEmbedAnalysis
 
 # configure
 case=(ga)

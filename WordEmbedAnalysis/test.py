@@ -3,6 +3,9 @@ import json
 from pprint import pprint
 import torch
 
+import sys
+sys.path.append('../utils')
+
 from loader import WordVector, load_datasets, split
 from model import BiLSTM
 from train import test, initialize_model, translate_df_tensor, translate_batch, dump_dic
