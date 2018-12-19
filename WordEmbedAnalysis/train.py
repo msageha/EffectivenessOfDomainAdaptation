@@ -262,7 +262,7 @@ def test(tests, bilstm, args):
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
-        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]['F1-score']['total']}\tacc: {results[domain]["acc"]}')
+        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc: {results[domain]["acc"]}')
     return results
 
 def return_file_domain(file):
