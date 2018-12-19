@@ -36,7 +36,7 @@ class WordVector():
             exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
             self.vectors = np.vstack((padding_vector, self.vectors, unk_vector, none_vector, exo1_vector, exo2_vector, exoX_vector))
         elif emb_type == 'Random':
-            self.index2word = ['padding']
+            self.index2word = ['padding', '<unk>', '<none>', '<exoX>', '<exo2>', '<exo1>']
             with open(path, 'r') as f:
                 for line in f:
                     word = line.strip()
@@ -119,6 +119,7 @@ def to_intra_sentential_df(df):
         start = index + 1
 
 def case_tags_to_id(df, y, case):
+    import ipdb;ipdb.set_trace()
     sentence_start_id = 4
     sentence_end_id = 4
     for index in df[df['is文末']==True].index:
@@ -133,15 +134,15 @@ def case_tags_to_id(df, y, case):
             else:
                 return (df['id'] == y[case]).idxmax(), 'inter'
         else:
-            return 1, 'inter' #文内ゼロの場合，文間ゼロ照応はexogと同じタグIDに．
+            return '1', 'inter' #解析対象が文内ゼロの場合，文間ゼロ照応はexogと同じタグIDに．
     elif y[case] == 'exog':
-        return 1, 'exoX'
+        return '1', 'exoX'
     elif y[case] == 'exo2':
-        return 2, 'exo2'
+        return '2', 'exo2'
     elif y[case] == 'exo1':
-        return 3, 'exo1'
+        return '3', 'exo1'
     else:
-        return 0, 'none'
+        return '0', 'none'
 
 def df_to_intra_vector(df, wv):
     fe = FeatureToEmbedID()
