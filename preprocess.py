@@ -12,29 +12,32 @@ def get_tag_id(text):
     if m: return m.group(1)
     return ''
 def get_ga_tag(text):
-    m = re.search(r'ga="(.+?)"', text)
-    if m: return m.group(1)
-    return ''
+    ids = []
+    for m in re.finditer(r'ga="(.+?)"', text):
+        ids.append(m.group(1))
+    return ','.join(ids)
 def get_o_tag(text):
-    m = re.search(r'o="(.+?)"', text)
-    if m: return m.group(1)
-    return ''
+    ids = []
+    for m in re.finditer(r'o="(.+?)"', text):
+        ids.append(m.group(1))
+    return ','.join(ids)
 def get_ni_tag(text):
-    m = re.search(r' ni="(.+?)"', text)
-    if m: return m.group(1)
-    return ''
-def get_ga_dep_tag(text):
-    m = re.search(r'ga_dep="(.+?)"', text)
-    if m: return m.group(1)
-    return None
-def get_o_dep_tag(text):
-    m = re.search(r'o_dep="(.+?)"', text)
-    if m: return m.group(1)
-    return None
-def get_ni_dep_tag(text):
-    m = re.search(r' ni_dep="(.+?)"', text)
-    if m: return m.group(1)
-    return None
+    ids = []
+    for m in re.finditer(r' ni="(.+?)"', text):
+        ids.append(m.group(1))
+    return ','.join(ids)
+# def get_ga_dep_tag(text):
+#     m = re.search(r'ga_dep="(.+?)"', text)
+#     if m: return m.group(1)
+#     return None
+# def get_o_dep_tag(text):
+#     m = re.search(r'o_dep="(.+?)"', text)
+#     if m: return m.group(1)
+#     return None
+# def get_ni_dep_tag(text):
+#     m = re.search(r' ni_dep="(.+?)"', text)
+#     if m: return m.group(1)
+#     return None
 def is_num(text):
     m = re.match('\A[0-9]+\Z', text)
     if m: return True
@@ -63,15 +66,15 @@ def line_to_df(line):
     ga_tag = get_ga_tag(tags)
     o_tag = get_o_tag(tags)
     ni_tag = get_ni_tag(tags)
-    ga_dep_tag = get_ga_dep_tag(tags)
-    o_dep_tag = get_o_dep_tag(tags)
-    ni_dep_tag = get_ni_dep_tag(tags)
+    # ga_dep_tag = get_ga_dep_tag(tags)
+    # o_dep_tag = get_o_dep_tag(tags)
+    # ni_dep_tag = get_ni_dep_tag(tags)
     verb_type = get_type(tags)
-    df = pd.DataFrame([[word, pos_list[0], pos_list[1], pos_list[2], pos_list[3], pos_list[4], pos_list[5], tag_id, ga_tag, ga_dep_tag, o_tag, o_dep_tag, ni_tag, ni_dep_tag, verb_type]], columns=['単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type'])
+    df = pd.DataFrame([[word, pos_list[0], pos_list[1], pos_list[2], pos_list[3], pos_list[4], pos_list[5], tag_id, ga_tag, o_tag, ni_tag, verb_type]], columns=['単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'o', 'ni', 'type'])
     return df
 
 def document_to_df(document):
-    df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末'])
+    df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'ga', 'o', 'ni', 'type', 'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末'])
     n_words = 0
     n_words_from_phrase = 0
     n_sentence = 0
