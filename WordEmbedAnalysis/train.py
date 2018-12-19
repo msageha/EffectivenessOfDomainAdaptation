@@ -1,3 +1,8 @@
+import sys
+sys.path.append('../utils')
+from loader import WordVector, load_datasets, split
+from model import BiLSTM
+
 import argparse
 from collections import defaultdict
 import json
@@ -9,11 +14,6 @@ from pprint import pprint
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-
-import sys
-sys.path.append('../utils')
-from loader import WordVector, load_datasets, split
-from model import BiLSTM
 
 from allennlp.modules import elmo
 
