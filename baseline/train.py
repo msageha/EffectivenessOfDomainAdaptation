@@ -162,7 +162,7 @@ def train(trains, vals, bilstm, args):
     dump_dic(best_epochs, args.dump_dir, 'training_result.json')
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
-        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]['F1-score(total)']}\tacc: {best_epochs[domain]["acc"]}')
+        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc: {best_epochs[domain]["acc"]}')
 
 def initialize_confusion_matrix():
     case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
