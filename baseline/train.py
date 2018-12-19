@@ -142,12 +142,7 @@ def train(trains, vals, bilstm, args):
             optimizer.step()
             running_loss += loss.item()
 
-            if i % 100 == 99:    # print every 100 mini-batches
-                print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/100}\tacc: {running_correct/running_samples}')
-                running_loss = 0.0
-                running_correct = 0
-                running_samples = 0
-        print(f'[epoch: {epoch},\titer: {i+1}]\tloss: {running_loss/(i+1%100)}\tacc: {running_correct/running_samples}')
+        print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/args.batch_size)}\tacc: {running_correct/running_samples}')
         _results = test(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
@@ -264,7 +259,7 @@ def test(tests, bilstm, args):
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
-        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tacc: {results[domain]["acc"]}')
+        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]['F1-score']['total']}\tacc: {results[domain]["acc"]}')
     return results
 
 def return_file_domain(file):
