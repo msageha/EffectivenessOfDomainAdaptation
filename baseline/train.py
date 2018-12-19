@@ -84,11 +84,13 @@ def translate_batch(batch, gpu, case, emb_type):
     max_length = x[argsort_index[0]].shape[0]
     if emb_type == 'ELMo':
         sentences = [i['単語'].values[4:] for i in batch[:, 0]]
+        sentences = np.array(sentences)[argsort_index]
         x_wordID = elmo.batch_to_ids(sentences)
         if gpu >= 0:
             x_wordID = x_wordID.cuda()
     elif emb_type == 'ELMoForManyLangs':
         sentences = [i['単語'].values[4:] for i in batch[:, 0]]
+        sentences = np.array(sentences)[argsort_index]
         x_wordID = sentences
     else:
         x_wordID = translate_df_tensor(x, ['単語ID'], argsort_index, gpu)
