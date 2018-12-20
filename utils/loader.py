@@ -7,12 +7,11 @@ import re
 
 class WordVector():
     def __init__(self, emb_type, path=None):
+        #padding
+        self.index2word = ['padding']
+        padding_vector = np.zeros((1, 200))
         if emb_type == 'Word2Vec' or emb_type == 'FastText':
             model = load_word_vector(path)
-
-            #padding
-            self.index2word = ['padding']
-            padding_vector = np.zeros((1, 200))
             #UNK
             self.index2word.append('<unk>')
             unk_vector = 2*np.random.rand(1, 200) - 1
@@ -35,7 +34,7 @@ class WordVector():
             )
 
         elif emb_type == 'Random':
-            self.index2word = ['padding', '<unk>', '<none>', '<exoX>', '<exo2>', '<exo1>']
+            self.index2word += ['<unk>', '<none>', '<exoX>', '<exo2>', '<exo1>']
             with open(path, 'r') as f:
                 for line in f:
                     word = line.strip()
@@ -43,7 +42,7 @@ class WordVector():
             self.vectors = None
 
         elif emb_type == 'ELMo' or emb_type == 'ELMoForManyLangs':
-            self.index2word = ['padding', '<unk>']
+            self.index2word += ['<unk>']
             self.vectors = None
 
         else:
@@ -433,7 +432,6 @@ def df_to_intra_vector(df, wv):
             i = x.columns.get_loc('is_target_verb')
             x.iloc[index, i] = 1
             x['述語からの距離'] = x.index - index
-            import ipdb; ipdb.set_trace();
             yield x, y
 
 def df_to_inter_vector(df, wv):
@@ -504,7 +502,6 @@ def creating_datasets_for_each_domain(path, wv, is_intra, media):
 def load_datasets(wv, is_intra, media=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], pickle_path='../datasets.pickle'):
     datasets = defaultdict(list)
     for domain, x, y, file in creating_datasets_for_each_domain(pickle_path, wv, is_intra, media):
-        import ipdb; ipdb.set_trace;
         datasets[domain].append((x, y, file))
     return datasets
 
