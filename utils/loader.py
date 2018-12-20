@@ -371,32 +371,19 @@ def to_intra_sentential_df(df):
         yield df.loc[start:end]
         start = index + 1
 
-def case_tags_to_id(df, y, case):
-    import ipdb;ipdb.set_trace()
-    sentence_start_id = 4
-    sentence_end_id = 4
-    for index in df[df['is文末']==True].index:
-        if index < y.name:
-            sentence_start_id = index+1
-        if index >= y.name:
-            sentence_end_id = index
-    if is_num(y[case]):
-        if (df['id'] == y[case]).sum():
-            if sentence_start_id <= (df['id'] == y[case]).idxmax() and (df['id'] == y[case]).idxmax() <= sentence_end_id:
-                return (df['id'] == y[case]).idxmax(), 'intra'
-            else:
-                return (df['id'] == y[case]).idxmax(), 'inter'
-        else:
-            #解析対象が文内ゼロの場合，文間ゼロ照応はexogと同じタグIDに．
-            return '1', 'inter'
-    elif y[case] == 'exog':
-        return '1', 'exoX'
-    elif y[case] == 'exo2':
-        return '2', 'exo2'
-    elif y[case] == 'exo1':
-        return '3', 'exo1'
+def case_id_to_index(df, case_id, case_type, is_intra):
+    if case_type = 'none':
+        return '0'
+    elif case_type = 'exoX':
+        return '1'
+    elif case_type = 'exo2':
+        return '2'
+    elif case_type = 'exo1':
+        return '1'
+    elif is_intra and case_type = 'inter(zero)':
+        return '1'
     else:
-        return '0', 'none'
+        return str((df['id'] == case_id).idxmax())
 
 def df_to_intra_vector(df, wv):
     fe = FeatureToEmbedID()
@@ -433,11 +420,14 @@ def df_to_intra_vector(df, wv):
             y = row.loc[['ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type']].copy()
             cases = ['ga', 'o', 'ni']
             for case in cases:
-                y[case], tag = case_tags_to_id(df, y, case)
-                if y[f'{case}_type'] == None:
-                    y[f'{case}_type'] = tag
-                else:
-                    y[f'{case}_type'] = tag + '(' + y[f'{case}_type'] + ')'
+                case_types = y[f'{case}_type'].split(',')
+                case_ids = y[f'{case}'].split(',')
+                case_indices = []
+                for case_type, case_id in zip(case_types, case_ids):
+                    case_index = case_id_to_index(df, case_id, case_type, is_intra=True):
+                    case_indices.append(case_index)
+                case_indices = ','.join(case_indices)
+                y[case] = case_indices
             x = df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type', 'n文目', 'is文末'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
@@ -479,11 +469,14 @@ def df_to_inter_vector(df, wv):
             y = row.loc[['ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type']].copy()
             cases = ['ga', 'o', 'ni']
             for case in cases:
-                y[case], tag = case_tags_to_id(df, y, case)
-                if y[f'{case}_dep'] == None:
-                    y[f'{case}_dep'] = tag
-                else:
-                    y[f'{case}_dep'] = tag + '(' + y[f'{case}_dep'] + ')'
+                case_types = y[f'{case}_type'].split(',')
+                case_ids = y[f'{case}'].split(',')
+                case_indices = []
+                for case_type, case_id in zip(case_types, case_ids):
+                    case_index = case_id_to_index(df, case_id, case_type, is_intra=False):
+                    case_indices.append(case_index)
+                case_indices = ','.join(case_indices)
+                y[case] = case_indices
             x = df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
