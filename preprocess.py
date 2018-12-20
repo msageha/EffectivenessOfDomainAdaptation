@@ -150,6 +150,7 @@ def search_verbs(df):
                     'none',
                 ]
                 order_arg_index = [order.index(case_type) for case_type in case_types]
+                order_arg_index = np.array(order_arg_index).argsort()
                 if len(order_arg_index) != len(case_types):
                     print('Error!!!')
                 case_ids = [case_ids[i] for i in order_arg_index]
