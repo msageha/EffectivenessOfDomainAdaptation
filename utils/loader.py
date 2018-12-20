@@ -424,7 +424,7 @@ def df_to_intra_vector(df, wv):
                 case_ids = y[f'{case}'].split(',')
                 case_indices = []
                 for case_type, case_id in zip(case_types, case_ids):
-                    case_index = case_id_to_index(df, case_id, case_type, is_intra=True):
+                    case_index = case_id_to_index(df, case_id, case_type, is_intra=True)
                     case_indices.append(case_index)
                 case_indices = ','.join(case_indices)
                 y[case] = case_indices
@@ -473,7 +473,7 @@ def df_to_inter_vector(df, wv):
                 case_ids = y[f'{case}'].split(',')
                 case_indices = []
                 for case_type, case_id in zip(case_types, case_ids):
-                    case_index = case_id_to_index(df, case_id, case_type, is_intra=False):
+                    case_index = case_id_to_index(df, case_id, case_type, is_intra=False)
                     case_indices.append(case_index)
                 case_indices = ','.join(case_indices)
                 y[case] = case_indices
