@@ -150,6 +150,8 @@ def search_verbs(df):
                     'none',
                 ]
                 order_arg_index = [order.index(case_type) for case_type in case_types]
+                if len(order_arg_index) != len(case_types):
+                    print('Error!!!')
                 case_ids = [case_ids[i] for i in order_arg_index]
                 case_types = [case_types[i] for i in order_arg_index]
                 df[f'{case}'][index] = ','.join(case_ids)
