@@ -26,7 +26,14 @@ class BiLSTM(nn.Module):
             self.word_embed.weight.data.copy_(v_vec)
 
         feature_embed_layers = []
-        feature_embed_size = {"feature:0":25, "feature:1":26, "feature:2":12, "feature:3":6, "feature:4":94, "feature:5":32}
+        feature_embed_size = {
+            "feature:0" : 25,
+            "feature:1" : 26,
+            "feature:2" : 12,
+            "feature:3" : 6,
+            "feature:4" : 94,
+            "feature:5" : 32
+        }
         for key in feature_embed_size:
             size = feature_embed_size[key]
             feature_embed = nn.Embedding(size, 5, padding_idx=0)
@@ -76,13 +83,19 @@ class BiLSTM(nn.Module):
                 word_emb = word_emb.cuda()
                 exophora_emb = exophora_emb.cuda()
                 none_emb = none_emb.cuda()
-            word_emb = torch.cat((none_emb, exophora_emb, word_emb), 1)
+            word_emb = torch.cat(
+                (none_emb, exophora_emb, word_emb),
+                dim=1
+            )
         feature_emb_list = []
         for i, _x in enumerate(x[1]):
             feature_emb = self.feature_embed_layers[i](_x)
             feature_emb_list.append(feature_emb)
         x_feature = torch.tensor(x[2], dtype=torch.float, device=x[2].device)
-        x = torch.cat((word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature), 2)
+        x = torch.cat(
+            (word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature),
+            dim=2
+        )
         out, hidden = self.lstm(x, self.hidden)
         # out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
         

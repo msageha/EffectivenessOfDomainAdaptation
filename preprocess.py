@@ -9,11 +9,18 @@ import random
 
 def get_id_tag(text):
     m = re.search(r'id="([0-9]+)"', text)
-    if m: return m.group(1)
+    if m:
+        return m.group(1)
     return ''
 def get_eq_tag(text):
     m = re.search(r'eq="([0-9]+)"', text)
-    if m: return m.group(1)
+    if m:
+        return m.group(1)
+    return ''
+def get_type_tag(text):
+    m = re.search(r'type="(.+?)"', text)
+    if m:
+        return m.group(1)
     return ''
 def get_ga_tag(text):
     ids = []
@@ -45,14 +52,14 @@ def get_ni_tag(text):
 #     m = re.search(r' ni_dep="(.+?)"', text)
 #     if m: return m.group(1)
 #     return None
-def get_type(text):
-    m = re.search(r'type="(.+?)"', text)
-    if m: return m.group(1)
-    return ''
+
+#正規表現
 def is_num(text):
     m = re.match('\A[0-9]+\Z', text)
-    if m: return True
-    else: return False
+    if m:
+        return True
+    else:
+        return False
 def extraction_num(text):
     m = re.search(r'([-0-9]+)', text)
     return int(m.group(1))
@@ -77,8 +84,16 @@ def line_to_df(line):
     o_tag = get_o_tag(tags)
     ni_tag = get_ni_tag(tags)
     eq_tag = get_eq_tag(tags)
-    verb_type = get_type(tags)
-    df = pd.DataFrame([[word, pos_list[0], pos_list[1], pos_list[2], pos_list[3], pos_list[4], pos_list[5], id_tag, eq_tag, ga_tag, o_tag, ni_tag, verb_type]], columns=['単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'eq','ga', 'o', 'ni', 'type'])
+    verb_type = get_type_tag(tags)
+    df = pd.DataFrame(
+        [
+            [word, pos_list[0], pos_list[1], pos_list[2], pos_list[3], pos_list[4], pos_list[5],
+            id_tag, eq_tag, ga_tag, o_tag, ni_tag, verb_type]
+        ],
+        columns=['単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
+            'id', 'eq','ga', 'o', 'ni', 'type'
+        ]
+    )
     return df
 
 def decision_case_type(df, case_id, verb_index):
@@ -90,7 +105,9 @@ def decision_case_type(df, case_id, verb_index):
                 sentence_start_id = index+1
             if index >= verb_index:
                 sentence_end_id = index
+                break
         case_index = (df['id'] == case_id).idxmax()
+        #文内照応
         if sentence_start_id <= case_index and case_index <= sentence_end_id:
             verb_phrase_num = df['n文節目'][verb_index]
             dependency_relation_phrase = df['係り先文節'][case_index]
@@ -99,8 +116,10 @@ def decision_case_type(df, case_id, verb_index):
                 return 'intra(dep)'
             else:
                 return 'intra(zero)'
+        #文間照応
         else:
             return 'inter(zero)'
+    #外界照応or照応なし
     elif case_id == 'exo1':
         return 'exo1'
     elif case_id == 'exo2':
@@ -110,7 +129,6 @@ def decision_case_type(df, case_id, verb_index):
     elif case_id == '':
         return 'none'
     else:
-        import ipdb; ipdb.set_trace();
         print('Error!!!')
 
 def search_verbs(df):
@@ -124,7 +142,13 @@ def search_verbs(df):
                 df[f'{case}_dep'][index] = ','.join(case_types)
 
 def document_to_df(document):
-    df = pd.DataFrame(columns=['n単語目', '単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5', 'id', 'eq', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末'])
+    df = pd.DataFrame(
+        columns=['n単語目', '単語',
+            '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
+            'id', 'eq', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type',
+            'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末',
+        ]
+    )
     n_words = 0
     n_words_from_phrase = 0
     n_sentence = 0
@@ -159,7 +183,10 @@ def document_to_df(document):
             _df['is文末'] = False
             n_words += 1 
             n_words_from_phrase += 1
-            df = pd.concat([df, _df], ignore_index=True, sort=False)
+            df = pd.concat(
+                [df, _df],
+                ignore_index=True, sort=False
+            )
     search_verbs(df)
     return df
 
@@ -176,6 +203,13 @@ def main(path, domains):
 
 if __name__ == '__main__':
     dataset_path = '../data/pas'
-    domain_dict = {'PM':'雑誌','PN':'新聞', 'OW':'白書', 'OC':'Yahoo!知恵袋', 'OY':'Yahoo!ブログ', 'PB':'書籍'}
+    domain_dict = {
+        'OC' : 'Yahoo!知恵袋',
+        'OW' : '白書',
+        'OY' : 'Yahoo!ブログ',
+        'PB' : '書籍',
+        'PM' : '雑誌',
+        'PN' : '新聞',
+    }
     domains = list(domain_dict.keys())
     main(dataset_path, domains)
