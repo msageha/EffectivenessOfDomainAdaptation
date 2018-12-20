@@ -433,6 +433,7 @@ def df_to_intra_vector(df, wv):
             i = x.columns.get_loc('is_target_verb')
             x.iloc[index, i] = 1
             x['述語からの距離'] = x.index - index
+            import ipdb; ipdb.set_trace();
             yield x, y
 
 def df_to_inter_vector(df, wv):
