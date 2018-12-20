@@ -503,6 +503,7 @@ def creating_datasets_for_each_domain(path, wv, is_intra, media):
 def load_datasets(wv, is_intra, media=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], pickle_path='../datasets.pickle'):
     datasets = defaultdict(list)
     for domain, x, y, file in creating_datasets_for_each_domain(pickle_path, wv, is_intra, media):
+        import ipdb; ipdb.set_trace;
         datasets[domain].append((x, y, file))
     return datasets
 
