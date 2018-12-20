@@ -91,7 +91,7 @@ def line_to_df(line):
             id_tag, eq_tag, ga_tag, o_tag, ni_tag, verb_type]
         ],
         columns=['単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
-            'id', 'eq','ga', 'o', 'ni', 'type'
+            'id', 'eq','ga', 'o', 'ni', 'verb_type'
         ]
     )
     return df
@@ -133,19 +133,33 @@ def decision_case_type(df, case_id, verb_index):
 
 def search_verbs(df):
     for index, row in df.iterrows():
-        if row['type'] == 'pred' or row['type'] == 'noun':
+        if row['verb_type'] == 'pred' or row['verb_type'] == 'noun':
             for case in ['ga', 'o', 'ni']:
                 case_types = []
-                for case_id in row[case].split(','):
+                case_ids = row[case].split(',')
+                for case_id in case_ids:
                     case_type = decision_case_type(df, case_id, index)
                     case_types.append(case_type)
-                df[f'{case}_dep'][index] = ','.join(case_types)
+                order = [
+                    'intra(dep)',
+                    'intra(zero)',
+                    'inter(zero)',
+                    'exo1',
+                    'exo2',
+                    'exoX',
+                    'none',
+                ]
+                order_arg_index = [order.index(case_type) for case_type in case_types]
+                case_ids = [case_ids[i] for i in order_arg_index]
+                case_types = [case_types[i] for i in order_arg_index]
+                df[f'{case}'][index] = ','.join(case_ids)
+                df[f'{case}_type'][index] = ','.join(case_types)
 
 def document_to_df(document):
     df = pd.DataFrame(
         columns=['n単語目', '単語',
             '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
-            'id', 'eq', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type',
+            'id', 'eq', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type',
             'n文節目', '係り先文節', 'is主辞', 'is機能語','n文目', 'is文末',
         ]
     )
