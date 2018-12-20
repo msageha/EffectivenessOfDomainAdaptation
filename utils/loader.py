@@ -372,15 +372,15 @@ def to_intra_sentential_df(df):
         start = index + 1
 
 def case_id_to_index(df, case_id, case_type, is_intra):
-    if case_type = 'none':
+    if case_type == 'none':
         return '0'
-    elif case_type = 'exoX':
+    elif case_type == 'exoX':
         return '1'
-    elif case_type = 'exo2':
+    elif case_type == 'exo2':
         return '2'
-    elif case_type = 'exo1':
+    elif case_type == 'exo1':
         return '1'
-    elif is_intra and case_type = 'inter(zero)':
+    elif is_intra and case_type == 'inter(zero)':
         return '1'
     else:
         return str((df['id'] == case_id).idxmax())
