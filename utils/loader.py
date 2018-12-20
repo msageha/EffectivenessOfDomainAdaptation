@@ -285,7 +285,7 @@ class VirtualWordsDataFrame():
         df = pd.DataFrame(
             columns=['n単語目', '単語',
                 '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
-                'id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type',
+                'id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type',
                 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目', 'is文末',
             ]
         )
@@ -429,16 +429,16 @@ def df_to_intra_vector(df, wv):
             row['is機能語'] = 0
         row['係り先文節'] = extraction_num(row['係り先文節'])
     for index, row in df.iterrows():
-        if row['type'] == 'noun' or row['type'] == 'pred':
-            y = row.loc[['ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type']].copy()
+        if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
+            y = row.loc[['ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type']].copy()
             cases = ['ga', 'o', 'ni']
             for case in cases:
                 y[case], tag = case_tags_to_id(df, y, case)
-                if y[f'{case}_dep'] == None:
-                    y[f'{case}_dep'] = tag
+                if y[f'{case}_type'] == None:
+                    y[f'{case}_type'] = tag
                 else:
-                    y[f'{case}_dep'] = tag + '(' + y[f'{case}_dep'] + ')'
-            x = df.drop(labels=['id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type', 'n文目', 'is文末'], axis=1).copy()
+                    y[f'{case}_type'] = tag + '(' + y[f'{case}_type'] + ')'
+            x = df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type', 'n文目', 'is文末'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
             x.iloc[index, i] = 1
@@ -475,8 +475,8 @@ def df_to_inter_vector(df, wv):
             row['is機能語'] = 0
         row['係り先文節'] = extraction_num(row['係り先文節'])
     for index, row in df.iterrows():
-        if row['type'] == 'noun' or row['type'] == 'pred':
-            y = row.loc[['ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type']].copy()
+        if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
+            y = row.loc[['ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type']].copy()
             cases = ['ga', 'o', 'ni']
             for case in cases:
                 y[case], tag = case_tags_to_id(df, y, case)
@@ -484,7 +484,7 @@ def df_to_inter_vector(df, wv):
                     y[f'{case}_dep'] = tag
                 else:
                     y[f'{case}_dep'] = tag + '(' + y[f'{case}_dep'] + ')'
-            x = df.drop(labels=['id', 'ga', 'ga_dep', 'o', 'o_dep', 'ni', 'ni_dep', 'type'], axis=1).copy()
+            x = df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type'], axis=1).copy()
             x['is_target_verb'] = 0
             i = x.columns.get_loc('is_target_verb')
             x.iloc[index, i] = 1
