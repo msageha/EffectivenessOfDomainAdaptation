@@ -34,7 +34,7 @@ def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--type', dest='dataset_type', required=True, choices=['intra', 'inter'], help='dataset: "intra" or "inter"')
     parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=20, help='max epoch')
-    parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'Word2VecWiki','FastText', 'ELMo', 'Random', 'ELMoForManyLangs'], help='word embedding type')
+    parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'Word2VecWiki','FastText', 'ELMo', 'Random', 'ELMoForManyLangs', 'None'], help='word embedding type')
     parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
     parser.add_argument('--emb_requires_grad_false', dest='emb_requires_grad', action='store_false', help='fixed word embedding or not')
     parser.add_argument('--emb_dim', type=int, default=200, help='word embedding dimension')
@@ -54,6 +54,8 @@ def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
         is_gpu = False
     if args.emb_type == 'ELMo' or args.emb_type == 'ELMoForManyLangs':
         bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type, elmo_model_dir=args.emb_path)
+    elif args.emb_type == 'None':
+        bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type)
     else:
         bilstm = BiLSTM(emb_dim, h_dim, class_num, vocab_size, is_gpu, v_vec, emb_type=args.emb_type)
     if is_gpu:

@@ -19,6 +19,8 @@ class BiLSTM(nn.Module):
             from elmoformanylangs import Embedder
             e = Embedder(elmo_model_dir)
             self.word_embed = e.sents2elmo
+        elif emb_type == 'None':
+            self.word_embed = None
         else:
             self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
         if v_vec is not None:
@@ -54,7 +56,8 @@ class BiLSTM(nn.Module):
 
     def forward(self, x):
         self.hidden = self.init_hidden(x[2].size(0))
-        word_emb = self.word_embed(x[0])
+        if self.word_embed:
+            word_emb = self.word_embed(x[0])
         if self.word_embed.__class__.__name__ == 'Embedding':
             pass
         elif self.word_embed.__class__.__name__ == 'Elmo':
@@ -92,10 +95,16 @@ class BiLSTM(nn.Module):
             feature_emb = self.feature_embed_layers[i](_x)
             feature_emb_list.append(feature_emb)
         x_feature = torch.tensor(x[2], dtype=torch.float, device=x[2].device)
-        x = torch.cat(
-            (word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature),
-            dim=2
-        )
+        if self.word_embed:
+            x = torch.cat(
+                (word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature),
+                dim=2
+            )
+        else:
+            x = torch.cat(
+                (feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature),
+                dim=2
+            )
         out, hidden = self.lstm(x, self.hidden)
         # out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
         
