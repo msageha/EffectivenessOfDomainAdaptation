@@ -242,7 +242,7 @@ def calculate_f1(confusion_matrix):
     df['precision']['total'] = all_tp/(all_tp+all_fp)
     df['recall']['total'] = all_tp/(all_tp+all_fn)
     df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
-    return df
+    return df.to_dict()
 
 def predicted_log(batch, pred, target_case, dump_dir, corrects):
     batchsize = len(batch)
