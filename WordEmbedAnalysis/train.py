@@ -249,7 +249,7 @@ def predicted_log(batch, pred, target_case, dump_dir, corrects):
     for i in range(batchsize):
         target_verb_index = batch[i][1].name
         predicted_argument_index = pred[i].item()
-        actual_argument_index = int(batch[i][1][target_case].split(','))
+        actual_argument_index = int(batch[i][1][target_case].split(',')[0])
         target_verb = batch[i][0]['単語'][target_verb_index]
         predicted_argument = batch[i][0]['単語'][predicted_argument_index]
         actual_argument = batch[i][0]['単語'][actual_argument_index]
