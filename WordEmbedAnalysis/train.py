@@ -280,7 +280,7 @@ def test(tests, bilstm, args):
     bilstm.eval()
     criterion = nn.CrossEntropyLoss()
     N = len(tests)
-    for i in tqdm(range(0, N, args.batch_size), mininterval=5):
+    for i in tqdm(range(0, N, args.batch_size)):
         batch = tests[i:i+args.batch_size]
         batchsize = len(batch)
 
