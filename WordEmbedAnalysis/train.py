@@ -65,7 +65,7 @@ def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
         print(m.__class__.__name__)
         weights_init(m)
 
-    if args.emb_type != 'ELMo' and args.emb_type != 'ELMoForManyLangs':
+    if args.emb_type != 'ELMo' and args.emb_type != 'ELMoForManyLangs' and args.emb_type != 'None':
         for param in bilstm.word_embed.parameters():
             param.requires_grad = emb_requires_grad
 
