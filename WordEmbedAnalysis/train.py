@@ -204,7 +204,7 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _predict_index, target_
                 predict_case_type = 'intra(zero)'
 
     correct_case_index_list = [int(i) for i in _batch[1][target_case].split(',')]
-    for correct_case_index in correct_case_index_list:
+    for correct_case_index in correct_case_index_list.copy():
         eq = _batch[0]['eq'][correct_case_index]
         if is_num(eq):
             correct_case_index_list += np.arange(len(_batch[0]))[_batch[0]['eq']==eq].tolist()
