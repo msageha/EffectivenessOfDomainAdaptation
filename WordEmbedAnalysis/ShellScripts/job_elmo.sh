@@ -1,5 +1,5 @@
 #$ -cwd
-#$ -l s_gpu=1
+#$ -l q_core=1
 # 実行時間を指定（5分）
 #$ -l h_rt=24:00:00
 # 名前（hill_climbing.e[ジョブ番号？]，hill_climbing.o[ジョブ番号？]というそれぞれエラー出力，標準出力ファイルが生成される．ただしこれの内容は信用できない）
@@ -18,7 +18,7 @@ type=intra
 emb_type=ELMo
 emb_path='../../data/embedding/ELMo'
 emb_dim=(1024 200)
-parallel --dry-run "\
+parallel "\
     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2} --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim {2} --epochs 30
     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
     " ::: ${case[@]} ::: ${emb_dim[@]}
