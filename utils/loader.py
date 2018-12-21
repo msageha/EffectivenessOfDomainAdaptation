@@ -378,7 +378,7 @@ def case_id_to_index(df, case_id, case_type, is_intra):
     elif case_type == 'exo2':
         return '2'
     elif case_type == 'exo1':
-        return '1'
+        return '3'
     elif is_intra and case_type == 'inter(zero)':
         return '1'
     else:

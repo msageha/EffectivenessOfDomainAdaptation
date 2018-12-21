@@ -10,11 +10,19 @@ from pprint import pprint
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+import re
 
 import sys
 sys.path.append('../utils')
 from loader import WordVector, load_datasets, split
 from model import BiLSTM
+
+def is_num(text):
+    m = re.match('\A[0-9]+\Z', text)
+    if m:
+        return True
+    else:
+        return False
 
 # init model
 def weights_init(m):
@@ -173,34 +181,43 @@ def initialize_confusion_matrix():
     df = pd.DataFrame(data=0, index=index, columns=columns)
     return df
 
-def calculate_confusion_matrix(confusion_matrix, _batch, _pred, target_case):
-    actual_case_type = _batch[1][f'{target_case}_dep']
-    if _pred == 0:
-        pred_case_type = 'none'
-    elif _pred == 1:
-        pred_case_type = 'exo1'
-    elif _pred == 2:
-        pred_case_type = 'exo2'
-    elif _pred == 3:
-        pred_case_type = 'exoX'
+def calculate_confusion_matrix(confusion_matrix, _batch, _predict_index, target_case):
+    if _predict_index == 0:
+        predict_case_type = 'none'
+    elif _predict_index == 1:
+        predict_case_type = 'exo1'
+    elif _predict_index == 2:
+        predict_case_type = 'exo2'
+    elif _predict_index == 3:
+        predict_case_type = 'exoX'
     else:
         target_verb_index = _batch[1].name
         verb_phrase_number = _batch[0]['n文節目'][target_verb_index]
-        if _pred >= len(_batch[0]['係り先文節']):
-            pred_case_type = 'inter(zero)'
+        if 'n文目' in _batch[0].keys() and _batch[0]['n文目'][target_verb_index] != _batch[0]['n文目'][_predict_index]:
+            predict_case_type = 'inter(zero)'
         else:
-            pred_dependency_relation_phrase_number = _batch[0]['係り先文節'][_pred]
-            if verb_phrase_number == pred_dependency_relation_phrase_number:
-                pred_case_type = 'intra(dep)'
+            #文内解析時（文内解析時は，文間ゼロ照応に対して予測することはありえない）
+            predict_dependency_relation_phrase_number = _batch[0]['係り先文節'][_predict_index]
+            if verb_phrase_number == predict_dependency_relation_phrase_number:
+                predict_case_type = 'intra(dep)'
             else:
-                if 'n文目' in _batch[0].keys():
-                    if _batch[0]['n文目'][target_verb_index] == _batch[0]['n文目'][_pred]:
-                        pred_case_type = 'intra(zero)'
-                    else:
-                        pred_case_type = 'inter(zero)'
-                else:
-                    pred_case_type = 'intra(zero)'
-    confusion_matrix['actual'][actual_case_type]['predicted'][pred_case_type] += 1
+                predict_case_type = 'intra(zero)'
+
+    correct_case_index_list = [int(i) for i in _batch[1][target_case].split(',')]
+    for correct_case_index in correct_case_index_list:
+        eq = _batch[0]['eq'][correct_case_index]
+        if is_num(eq):
+            correct_case_index_list += np.arange(len(_batch[0]))[_batch[0]['eq']==eq].tolist()
+    if _predict_index in correct_case_index_list:
+        #予測正解時
+        actual_case_type = predict_case_type
+        is_correct = True
+    else:
+        #予測不正解時
+        actual_case_type = _batch[1][f'{target_case}_type'].split(',')[0]
+        is_correct = False
+    confusion_matrix['actual'][actual_case_type]['predicted'][predict_case_type] += 1
+    return is_correct
 
 def calculate_f1(confusion_matrix):
     case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
@@ -227,7 +244,7 @@ def calculate_f1(confusion_matrix):
     df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
     return df
 
-def predicted_log(batch, pred, target_case, dump_dir):
+def predicted_log(batch, pred, target_case, dump_dir, corrects):
     batchsize = len(batch)
     for i in range(batchsize):
         target_verb_index = batch[i][1].name
@@ -239,6 +256,7 @@ def predicted_log(batch, pred, target_case, dump_dir):
         sentence = ' '.join(batch[i][0]['単語'][4:])
         file = batch[i][2]
         log = {
+            '正解': corrects[i]
             '述語位置': target_verb_index - 4,
             '述語': target_verb,
             '正解項位置': actual_argument_index - 4,
@@ -273,18 +291,20 @@ def test(tests, bilstm, args):
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
+
         pred = out.argmax(dim=2)[:, 1]
-        import ipdb; ipdb.set_trace();
+        corrects = []
         for i, file in enumerate(files):
+
             correct = pred[i].eq(y[i].argmax()).item()
             domain = return_file_domain(file)
             results[domain]['correct'] += correct
             results[domain]['samples'] += 1
             loss = criterion(out[i].reshape(1, 2, -1), y[i].reshape(1, -1))
             results[domain]['loss'] += loss.item()
-            calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
-
-        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir):
+            correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
+            corrects.append(correct)
+        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
             logs[domain].append(log)
 
     for domain in args.media:
