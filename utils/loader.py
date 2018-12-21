@@ -11,7 +11,30 @@ class WordVector():
         self.index2word = ['padding']
         padding_vector = np.zeros((1, 200))
         if emb_type == 'Word2Vec' or emb_type == 'FastText':
-            model = load_word_vector(path)
+            model = load_word_vector(path, is_w2v_format=False)
+            #UNK
+            self.index2word.append('<unk>')
+            unk_vector = 2*np.random.rand(1, 200) - 1
+            #none
+            self.index2word.append('<none>')
+            none_vector = np.zeros((1, 200))
+            #exoX
+            self.index2word.append('<exoX>')
+            exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
+            #exo2
+            self.index2word.append('<exo2>')
+            exo2_vector = model.wv.get_vector('あなた').reshape(1, 200)
+            #exo1
+            self.index2word.append('<exo1>')
+            exo1_vector = model.wv.get_vector('私').reshape(1, 200)
+
+            self.index2word += model.wv.index2word.copy()
+            self.vectors = np.vstack(
+                (padding_vector, unk_vector, none_vector, exo1_vector, exo2_vector, exoX_vector, model.wv.vectors.copy())
+            )
+
+        elif emb_type == 'Word2VecWiki':
+            model = load_word_vector(path, is_w2v_format=True)
             #UNK
             self.index2word.append('<unk>')
             unk_vector = 2*np.random.rand(1, 200) - 1
@@ -358,9 +381,12 @@ def extraction_num(text):
     m = re.search(r'([-0-9]+)', text)
     return int(m.group(1))
 
-def load_word_vector(path):
+def load_word_vector(path, is_w2v_format=False):
     print(f'--- start loading Word Vector from {path} ---')
-    model = gensim.models.KeyedVectors.load(path)
+    if is_w2v_format:
+        model = gensim.models.KeyedVectors.load_word2vec_format(path)
+    else:
+        model = gensim.models.KeyedVectors.load(path)
     return model
 
 def to_intra_sentential_df(df):

@@ -18,7 +18,7 @@ type=intra
 emb_type=ELMo
 emb_path='../../data/embedding/ELMo/1024'
 emb_dim=1024
-parallel --dry-run "\
+parallel "\
     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_dim/{} --emb_dim $emb_dim
     python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_dim/{}
     " ::: ${case[@]}
