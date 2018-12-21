@@ -22,3 +22,7 @@ python3 test.py --gpu 0 --load_dir intra/Word2Vec/entity_vector/ga
 #FastText
 python3 train.py --type intra --emb_type FastText --emb_path ../../data/embedding/FastText/All.bin --gpu 0 --case ga --dump_dir intra/FastText/All/ga --emb_dim 200
 python3 test.py --gpu 0 --load_dir intra/FastText/All/ga
+
+#None
+python3 train.py --type intra --emb_type None --emb_path '' --gpu 0 --case ga --dump_dir intra/None/ga --emb_dim 0
+python3 test.py --gpu 0 --load_dir intra/None/ga
