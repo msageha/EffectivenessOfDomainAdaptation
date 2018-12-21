@@ -294,15 +294,15 @@ def test(tests, bilstm, args):
 
         pred = out.argmax(dim=2)[:, 1]
         corrects = []
-        for i, file in enumerate(files):
+        for j, file in enumerate(files):
 
-            correct = pred[i].eq(y[i].argmax()).item()
+            correct = pred[j].eq(y[j].argmax()).item()
             domain = return_file_domain(file)
             results[domain]['correct'] += correct
             results[domain]['samples'] += 1
-            loss = criterion(out[i].reshape(1, 2, -1), y[i].reshape(1, -1))
+            loss = criterion(out[j].reshape(1, 2, -1), y[j].reshape(1, -1))
             results[domain]['loss'] += loss.item()
-            correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[i], pred[i], args.case)
+            correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j], args.case)
             corrects.append(correct)
         for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
             logs[domain].append(log)
