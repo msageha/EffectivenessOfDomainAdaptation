@@ -13,8 +13,6 @@ class BiLSTM(nn.Module):
             options_file = f'{elmo_model_dir}/options.json'
             weight_file = f'{elmo_model_dir}/weights.hdf5'
             self.word_embed = Elmo(options_file, weight_file, num_output_representations=1, dropout=0)
-            if gpu:
-                self.word_embed = self.word_embed.cuda()
         elif emb_type=='ELMoForManyLangs':
             from elmoformanylangs import Embedder
             e = Embedder(elmo_model_dir)
