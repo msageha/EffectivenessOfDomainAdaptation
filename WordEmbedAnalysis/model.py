@@ -9,6 +9,8 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
         self.gpu = gpu
         self.h_dim = h_dim
+        if self.h_dim == None:
+            self.h_dim = emb_dim+36
         if emb_type=='ELMo':
             options_file = f'{elmo_model_dir}/options.json'
             weight_file = f'{elmo_model_dir}/weights.hdf5'
@@ -42,9 +44,8 @@ class BiLSTM(nn.Module):
             feature_embed.weight.data[0] = torch.zeros(5)
             feature_embed_layers.append(feature_embed)
         self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
-
-        self.lstm = nn.LSTM(input_size=emb_dim+36, hidden_size=h_dim, batch_first=batch_first, bidirectional=True)
-        self.l1 = nn.Linear(h_dim*2, n_labels)
+        self.lstm = nn.LSTM(input_size=emb_dim+36, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+        self.l1 = nn.Linear(self.h_dim*2, n_labels)
 
     def init_hidden(self, b_size):
         h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))

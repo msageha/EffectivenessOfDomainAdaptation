@@ -47,7 +47,7 @@ def create_arg_parser():
 
 def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
     emb_dim = args.emb_dim
-    h_dim = 200
+    h_dim = None
     class_num = 2
     is_gpu = True
     if gpu == -1:
