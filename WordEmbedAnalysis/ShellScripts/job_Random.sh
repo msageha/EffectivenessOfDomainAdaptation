@@ -19,7 +19,13 @@ emb_type=Random
 emb_path='../../data/embedding/Random'
 emb_dim=200
 file_name=(bccwj_intra_training word2vec_bccwj)
-parallel "\
-    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2}.index --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim $emb_dim
-    python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
-    " ::: ${case[@]} ::: ${file_name[@]}
+# parallel --dry-run "\
+#     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2}.index --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim $emb_dim
+#     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
+#     " ::: ${case[@]} ::: ${file_name[@]}
+
+python3 train.py --type intra --emb_type Random --emb_path ../../data/embedding/Random/bccwj_intra_training.index --gpu 0 --case ga --dump_dir intra/Random/bccwj_intra_training/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Random/bccwj_intra_training/ga
+
+python3 train.py --type intra --emb_type Random --emb_path ../../data/embedding/Random/word2vec_bccwj.index --gpu 0 --case ga --dump_dir intra/Random/word2vec_bccwj/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Random/word2vec_bccwj/ga
