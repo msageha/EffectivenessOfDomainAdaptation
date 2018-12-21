@@ -284,7 +284,7 @@ class VirtualWordsDataFrame():
         df = pd.DataFrame(
             columns=['n単語目', '単語',
                 '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
-                'id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type',
+                'id', 'eq','ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type',
                 'n文節目', '係り先文節', 'is主辞', 'is機能語', 'n文目', 'is文末',
             ]
         )
@@ -296,7 +296,8 @@ class VirtualWordsDataFrame():
         self.virtual_words = pd.concat(
             [df, self.none, self.exoX, self.exo2, self.exo1],
             ignore_index=True, sort=False
-        ).fillna('')
+        )
+        self.virtual_words = self.virtual_words.fillna('')
 
     def __exo1__(self):
         df = pd.DataFrame(
