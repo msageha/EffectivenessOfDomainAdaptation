@@ -256,7 +256,7 @@ def predicted_log(batch, pred, target_case, dump_dir, corrects):
         sentence = ' '.join(batch[i][0]['単語'][4:])
         file = batch[i][2]
         log = {
-            '正解': corrects[i]
+            '正解': corrects[i],
             '述語位置': target_verb_index - 4,
             '述語': target_verb,
             '正解項位置': actual_argument_index - 4,
