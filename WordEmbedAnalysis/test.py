@@ -41,7 +41,7 @@ def dump_predict_logs(logs, dump_dir):
     os.makedirs(f'./{dump_dir}/predicts/', exist_ok=True)
     for domain in logs.keys():
         with open(f'{dump_dir}/predicts/{domain}.tsv', 'w') as f:
-            f.write('\t'.join(logs[domain]))
+            f.write('\t'.join(logs[domain][0].keys()))
             f.write('\n')
             for log in logs[domain]:
                 values = [str(value) for value in log.values()]
