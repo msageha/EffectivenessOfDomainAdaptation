@@ -323,10 +323,16 @@ def test(tests, bilstm, args):
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc'] = results['All']['correct']/results['All']['samples']
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
-    import ipdb; ipdb.set_trace();
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc: {results[domain]["acc"]}')
         results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
+        tmp_dict1 = {}
+        for key1 in results[domain]['confusion_matrix']:
+            tmp_dict2 = {}
+            for key2 in results[domain]['confusion_matrix'][key1]:
+                tmp_dict2['_'.join(key2)] = results[domain]['confusion_matrix'][key1][key2]
+            tmp_dict1['_'.join(key1)] = tmp_dict2
+        results[domain]['confusion_matrix'] = tmp_dict1
         results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
