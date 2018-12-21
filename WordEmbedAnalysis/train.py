@@ -302,7 +302,7 @@ def test(tests, bilstm, args):
             results[domain]['samples'] += 1
             loss = criterion(out[j].reshape(1, 2, -1), y[j].reshape(1, -1))
             results[domain]['loss'] += loss.item()
-            correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j], args.case)
+            correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j].item(), args.case)
             corrects.append(correct)
         for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
             logs[domain].append(log)
