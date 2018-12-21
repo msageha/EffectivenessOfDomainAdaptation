@@ -18,10 +18,10 @@ type=intra
 emb_type=ELMo
 emb_path='../../data/embedding/ELMo'
 emb_dim=(1024 200)
-parallel "\
-    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2} --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim {2} --epochs 30
-    python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
-    " ::: ${case[@]} ::: ${emb_dim[@]}
+# parallel "\
+#     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2} --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim {2} --epochs 30
+#     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
+#     " ::: ${case[@]} ::: ${emb_dim[@]}
 
 python3 train.py --type intra --emb_type ELMo --emb_path ../../data/embedding/ELMo/1024 --gpu 0 --case ga --dump_dir intra/ELMo/1024/ga --emb_dim 1024 --epochs 30
 python3 test.py --gpu 0 --load_dir intra/ELMo/1024/ga

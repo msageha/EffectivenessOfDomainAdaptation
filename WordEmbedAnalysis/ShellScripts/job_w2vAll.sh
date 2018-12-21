@@ -19,7 +19,25 @@ emb_type=Word2Vec
 emb_path='../../data/embedding/Word2Vec'
 emb_dim=200
 w2v_media=(All_OC All_OY All_OW All_PB All_PM All_PN)
-parallel "\
-    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2}.bin --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim $emb_dim
-    python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
-    " ::: ${case[@]} ::: ${w2v_media[@]}
+# parallel --dry-run "\
+#     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2}.bin --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim $emb_dim
+#     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
+#     " ::: ${case[@]} ::: ${w2v_media[@]}
+
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OC.bin --gpu 0 --case ga --dump_dir intra/Word2Vec/All_OC/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OC/ga
+
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OY.bin --gpu 0 --case ga --dump_dir intra/Word2Vec/All_OY/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OY/ga
+
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OW.bin --gpu 0 --case ga --dump_dir intra/Word2Vec/All_OW/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OW/ga
+
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PB.bin --gpu 0 --case ga --dump_dir intra/Word2Vec/All_PB/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PB/ga
+
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PM.bin --gpu 0 --case ga --dump_dir intra/Word2Vec/All_PM/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PM/ga
+
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PN.bin --gpu 0 --case ga --dump_dir intra/Word2Vec/All_PN/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PN/ga
