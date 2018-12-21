@@ -325,7 +325,8 @@ def test(tests, bilstm, args):
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc: {results[domain]["acc"]}')
-    import ipdb; ipdb.set_trace();
+        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
+        results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
 def return_file_domain(file):
