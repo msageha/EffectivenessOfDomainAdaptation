@@ -185,11 +185,11 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _predict_index, target_
     if _predict_index == 0:
         predict_case_type = 'none'
     elif _predict_index == 1:
-        predict_case_type = 'exo1'
+        predict_case_type = 'exoX'
     elif _predict_index == 2:
         predict_case_type = 'exo2'
     elif _predict_index == 3:
-        predict_case_type = 'exoX'
+        predict_case_type = 'exo1'
     else:
         target_verb_index = _batch[1].name
         verb_phrase_number = _batch[0]['n文節目'][target_verb_index]
