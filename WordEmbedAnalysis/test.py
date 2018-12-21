@@ -75,7 +75,7 @@ def main():
     for domain in args.media:
         epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
-        _results = test(tests, bilstm, args)
+        _results, _logs = test(tests, bilstm, args)
         results[domain] = _results[domain]
         results[domain]['epoch'] = epoch
         logs[domain] = _logs[domain]
