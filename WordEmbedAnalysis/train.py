@@ -226,11 +226,14 @@ def calculate_f1(confusion_matrix):
     for case_type in case_types:
         tp = confusion_matrix['actual', case_type]['predicted', case_type]
         #precision
-        df['precision'][case_type] = tp/sum(confusion_matrix.loc['predicted', case_type])
+        if sum(confusion_matrix.loc['predicted', case_type]) != 0:
+            df['precision'][case_type] = tp/sum(confusion_matrix.loc['predicted', case_type])
         #recall
-        df['recall'][case_type] = tp/sum(confusion_matrix['actual', case_type])
+        if sum(confusion_matrix['actual', case_type]) != 0:
+            df['recall'][case_type] = tp/sum(confusion_matrix['actual', case_type])
         #F1-score
-        df['F1-score'][case_type] = (2*df['precision'][case_type]*df['recall'][case_type])/(df['precision'][case_type]+df['recall'][case_type])
+        if (df['precision'][case_type]+df['recall'][case_type]) != 0:
+            df['F1-score'][case_type] = (2*df['precision'][case_type]*df['recall'][case_type])/(df['precision'][case_type]+df['recall'][case_type])
     all_tp = 0
     all_fp = 0
     all_fn = 0
@@ -242,7 +245,7 @@ def calculate_f1(confusion_matrix):
     df['precision']['total'] = all_tp/(all_tp+all_fp)
     df['recall']['total'] = all_tp/(all_tp+all_fn)
     df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
-    return df.to_dict()
+    return df
 
 def predicted_log(batch, pred, target_case, dump_dir, corrects):
     batchsize = len(batch)
@@ -322,6 +325,7 @@ def test(tests, bilstm, args):
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc: {results[domain]["acc"]}')
+    import ipdb; ipdb.set_trace();
     return results, logs
 
 def return_file_domain(file):
