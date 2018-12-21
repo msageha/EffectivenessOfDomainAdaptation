@@ -1,7 +1,7 @@
 #$ -cwd
 #$ -l s_gpu=1
 # 実行時間を指定（5分）
-#$ -l h_rt=12:00:00
+#$ -l h_rt=24:00:00
 # 名前（hill_climbing.e[ジョブ番号？]，hill_climbing.o[ジョブ番号？]というそれぞれエラー出力，標準出力ファイルが生成される．ただしこれの内容は信用できない）
 #$ -N PAS
 # Module コマンドの初期化
@@ -15,21 +15,11 @@ cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/WordEmbedAnalysis
 # configure
 case=(ga)
 type=intra
-emb_type=ELMo
-emb_path='../../data/embedding/ELMo/1024'
-emb_dim=1024
+emb_type=Random
+emb_path='../../data/embedding/Random'
+emb_dim=200
+file_name=(bccwj_intra_training word2vec_bccwj)
 parallel "\
-    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_dim/{} --emb_dim $emb_dim
-    python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_dim/{}
-    " ::: ${case[@]}
-
- python3 train.py --type intra --emb_type ELMoForManyLangs --emb_path '../../data/embedding/ELMoForManyLangs/Japanese/' --gpu 0 --case ga --dump_dir ELMoForManyLangs --emb_dim 1024 --epochs 30
-# case=(ga)
-# type=intra
-# emb_type=Random
-# emb_path='./train_words.txt'
-# emb_file_name=200
-# parallel --dry-run "\
-#     python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path --gpu 0 --case {} --dump_dir $type/$emb_type/$emb_file_name/{}
-#     python3 test.py --gpu 0 --load_dir $type/$emb_type/$emb_file_name/{}
-#     " ::: ${case[@]}
+    python3 train.py --type $type --emb_type $emb_type --emb_path $emb_path/{2}.index --gpu 0 --case {1} --dump_dir $type/$emb_type/{2}/{1} --emb_dim $emb_dim
+    python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
+    " ::: ${case[@]} ::: ${file_name[@]}
