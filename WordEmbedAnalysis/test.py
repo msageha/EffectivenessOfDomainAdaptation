@@ -31,7 +31,7 @@ def load_model(epoch, bilstm, dump_dir, gpu):
     if gpu>=0:
         bilstm.cuda()
 
-def max_acc_epochs_of_vals(train_result_path):
+def max_f1_epochs_of_vals(train_result_path):
     with open(f'{train_result_path}/training_result.json') as f:
         val_results = json.load(f)
     return val_results
@@ -62,7 +62,7 @@ def main():
     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
 
     pprint(args.__dict__)
-    val_results = max_acc_epochs_of_vals(args.load_dir)
+    val_results = max_f1_epochs_of_vals(args.load_dir)
     results = {}
     logs = {}
     domain = 'All'
