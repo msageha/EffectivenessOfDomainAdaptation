@@ -296,7 +296,7 @@ class VirtualWordsDataFrame():
         self.virtual_words = pd.concat(
             [df, self.none, self.exoX, self.exo2, self.exo1],
             ignore_index=True, sort=False
-        )
+        ).fillna('')
 
     def __exo1__(self):
         df = pd.DataFrame(
