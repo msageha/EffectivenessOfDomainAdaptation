@@ -8,7 +8,7 @@ class BiLSTM(nn.Module):
     def __init__(self, emb_dim, n_labels, v_size, v_vec, dropout_ratio, n_layers, gpu=True, batch_first=True):
         super(BiLSTM, self).__init__()
         self.gpu = gpu
-        self.h_dim = emb_dim+34
+        self.h_dim = (emb_dim+34)/2
         self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
         v_vec = torch.tensor(v_vec)
         self.word_embed.weight.data.copy_(v_vec)
