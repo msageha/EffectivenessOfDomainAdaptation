@@ -159,7 +159,7 @@ def train(trains, vals, bilstm, args):
             optimizer.step()
             running_loss += loss.item()
 
-        print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/args.batch_size)}\tacc: {running_correct/running_samples}')
+        print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/args.batch_size)}\tacc(one_label): {running_correct/running_samples}')
         _results, _ = test(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
@@ -169,12 +169,12 @@ def train(trains, vals, bilstm, args):
         for domain in sorted(results[epoch].keys()):
             if results[epoch][domain]['F1']['F1-score']['total'] > best_epochs[domain]['F1-score(total)']:
                 best_epochs[domain]['F1-score(total)'] = results[epoch][domain]['F1']['F1-score']['total']
-                best_epochs[domain]['acc'] = results[epoch][domain]['acc']
+                best_epochs[domain]['acc(one_label)'] = results[epoch][domain]['acc(one_label)']
                 best_epochs[domain]['epoch'] = epoch
     dump_dic(best_epochs, args.dump_dir, 'training_result.json')
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
-        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc: {best_epochs[domain]["acc"]}')
+        print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
 
 def initialize_confusion_matrix():
     case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(dep)_false', 'intra(zero)', 'intra(zero)_false', 'inter(zero)', 'inter(zero)_false']
@@ -314,14 +314,6 @@ def test(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j].item(), args.case)
             corrects.append(correct)
-            # FOR debug
-            case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
-            correct_of_confusion_matrix = 0
-            correct_of_logs = np.array([log['正解'] for log in logs[domain]]).sum() + np.array(corrects).sum()
-            for case_type in case_types:
-                correct_of_confusion_matrix += results[domain]['confusion_matrix']['actual'][case_type]['predicted'][case_type]
-            if correct_of_confusion_matrix != correct_of_logs:
-                import ipdb; ipdb.set_trace();
         for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
             logs[domain].append(log)
 
@@ -333,13 +325,13 @@ def test(tests, bilstm, args):
             for j in range(results[domain]['confusion_matrix'].shape[1]):
                 results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
-        results[domain]['acc'] = results[domain]['correct']/results[domain]['samples']
+        results[domain]['acc(one_label)'] = results[domain]['correct']/results[domain]['samples']
         results[domain]['F1'] = calculate_f1(results[domain]['confusion_matrix'])
     results['All']['loss'] /= results['All']['samples']
-    results['All']['acc'] = results['All']['correct']/results['All']['samples']
+    results['All']['acc(one_label)'] = results['All']['correct']/results['All']['samples']
     results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
     for domain in sorted(results.keys()):
-        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc: {results[domain]["acc"]}')
+        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
         results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
         tmp_dict1 = {}
         for key1 in results[domain]['confusion_matrix']:
