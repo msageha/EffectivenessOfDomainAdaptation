@@ -197,6 +197,8 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _predict_index, target_
         verb_phrase_number = _batch[0]['n文節目'][target_verb_index]
         if 'n文目' in _batch[0].keys() and _batch[0]['n文目'][target_verb_index] != _batch[0]['n文目'][_predict_index]:
             predict_case_type = 'inter(zero)'
+        elif _predict_index >= len(_batch[0]):
+            predict_case_type = 'inter(zero)'
         else:
             #文内解析時（文内解析時は，文間ゼロ照応に対して予測することはありえない）
             predict_dependency_relation_phrase_number = _batch[0]['係り先文節'][_predict_index]
@@ -309,6 +311,13 @@ def test(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j].item(), args.case)
             corrects.append(correct)
+        # FOR debug
+        case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
+        correct_of_confusion_matrix = 0
+        for case_type in case_types:
+            correct_of_confusion_matrix += results[domain]['confusion_matrix']['actual'][case_type]['predicted'][case_type]
+        if correct_of_confusion_matrix != np.array(corrects).sum():
+            import ipdb; ipdb.set_trace();
         for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
             logs[domain].append(log)
 
