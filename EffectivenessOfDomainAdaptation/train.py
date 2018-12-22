@@ -156,7 +156,7 @@ def train(trains, vals, bilstm, args, lr, batch_size):
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
-    return best_epochs['All']["F1-score(total)"]
+    return 1 - best_epochs['All']["F1-score(total)"]
 
 def initialize_confusion_matrix():
     case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(dep)_false', 'intra(zero)', 'intra(zero)_false', 'inter(zero)', 'inter(zero)_false']

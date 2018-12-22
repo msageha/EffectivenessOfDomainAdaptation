@@ -23,7 +23,7 @@ def tuning(trains, vals, wv, args, trial):
     lr = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
     batch_size=trial.suggest_categorical('batch_size', [16, 32, 64])
     F1 = train(trains, vals, bilstm, args, lr=lr, batch_size=batch_size)
-    return 1 - F1
+    return F1
 
 def main():
     parser = create_arg_parser()
@@ -43,10 +43,10 @@ def main():
     # 目的関数にデータを適用する
     f = partial(tuning, trains, vals, wv, args)
     study = optuna.create_study()
-    study.optimize(f, n_trials=2)
+    study.optimize(f, n_trials=30)
 
     print("best params: ", study.best_params)
-    print("best test accuracy: ", 1 - study.best_value)
+    print("best test F1: ", 1 - study.best_value)
 
 if __name__ == '__main__':
     main()
