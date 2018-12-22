@@ -12,14 +12,6 @@ from loader import WordVector, load_datasets, split
 from model import BiLSTM
 from train import train, create_arg_parser, dump_dic, initialize_model
 
-
-def hightper_params():
-    lstm_n_layers = [1, 2, 3]
-    learning_rate = [1e-2, 1e-3, 1e-4] #alpha
-    betas = (0.9, 0.999)
-    dropout_ratio = [0.0, 0.1, 0.2, 0.3]
-    batchsize = [16, 32, 64]
-
 def tuning(trains, vals, wv, args, trial):
     # num of lstm layer
     n_layers = trial.suggest_int('n_layers', 1, 3)
@@ -51,7 +43,7 @@ def main():
     # 目的関数にデータを適用する
     f = partial(tuning, trains, vals, wv, args)
     study = optuna.create_study()
-    study.optimize(f, n_trials=1)
+    study.optimize(f, n_trials=2)
 
     print("best params: ", study.best_params)
     print("best test accuracy: ", 1 - study.best_value)

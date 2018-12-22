@@ -37,7 +37,7 @@ class BiLSTM(nn.Module):
             lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
             lstm_layers.append(lstm)
         self.lstm_layers = nn.ModuleList(lstm_layers)
-        self.l1 = nn.Linear(h_dim*2, n_labels)
+        self.l1 = nn.Linear(self.h_dim*2, n_labels)
 
     def init_hidden(self, b_size):
         h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
