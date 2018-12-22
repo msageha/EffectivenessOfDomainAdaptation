@@ -10,7 +10,7 @@ import sys
 sys.path.append('../utils')
 from loader import WordVector, load_datasets, split
 from model import BiLSTM
-from train import train, create_arg_parser
+from train import train, create_arg_parser, dump_dic, initialize_model
 
 
 def hightper_params():
@@ -20,7 +20,7 @@ def hightper_params():
     dropout_ratio = [0.0, 0.1, 0.2, 0.3]
     batchsize = [16, 32, 64]
 
-def tuning(trains, vals, traial):
+def tuning(trains, vals, args, trial):
     # num of lstm layer
     n_layers = trial.suggest_int('n_layers', 1, 3)
     # dropout_rate
@@ -49,7 +49,7 @@ def main():
     pprint(args.__dict__)
     
     # 目的関数にデータを適用する
-    f = partial(tuning, trains, vals)
+    f = partial(tuning, trains, vals, args)
     study = optuna.create_study()
     study.optimize(f, n_trials=1)
 
