@@ -65,8 +65,8 @@ class BiLSTM(nn.Module):
         for i in range(self.n_layers):
             x, hidden = self.lstm_layers[i](x, self.hidden)
         # out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
-        
-        out = self.l1(out)
+
+        out = self.l1(x)
         return out
 
 class FeatureAugmentation(nn.Module):
