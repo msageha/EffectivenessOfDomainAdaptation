@@ -44,6 +44,7 @@ class BiLSTM(nn.Module):
             feature_embed.weight.data[0] = torch.zeros(5)
             feature_embed_layers.append(feature_embed)
         self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
+        self.drop_target = nn.Dropout(p=0.2)
         self.lstm = nn.LSTM(input_size=emb_dim+36, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
         self.l1 = nn.Linear(self.h_dim*2, n_labels)
 
@@ -106,6 +107,7 @@ class BiLSTM(nn.Module):
                 (feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature),
                 dim=2
             )
+        x = self.drop_target(x)
         out, hidden = self.lstm(x, self.hidden)
         # out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
         
