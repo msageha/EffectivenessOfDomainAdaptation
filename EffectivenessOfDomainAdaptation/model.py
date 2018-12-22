@@ -34,7 +34,7 @@ class BiLSTM(nn.Module):
 
         lstm_layers = []
         for i in range(self.n_layers):
-            lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=h_dim, batch_first=batch_first, bidirectional=True)
+            lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
             lstm_layers.append(lstm)
         self.lstm_layers = nn.ModuleList(lstm_layers)
         self.l1 = nn.Linear(h_dim*2, n_labels)
