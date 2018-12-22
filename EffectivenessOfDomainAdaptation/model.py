@@ -63,7 +63,7 @@ class BiLSTM(nn.Module):
 
         x = self.drop_target(x)
         for i in range(self.n_layers):
-            x, hidden = self.lstm(x, self.hidden)
+            x, hidden = self.lstm_layers[i](x, self.hidden)
         # out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
         
         out = self.l1(out)
