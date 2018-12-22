@@ -338,23 +338,23 @@ def save_model(epoch, bilstm, dump_dir, gpu):
     if gpu >= 0:
         bilstm.cuda()
 
-# def main():
-#     parser = create_arg_parser()
-#     args = parser.parse_args()
-#     emb_type = 'Word2VecWiki'
-#     wv = WordVector(emb_type, args.emb_path)
-#     is_intra = True
-#     datasets = load_datasets(wv, is_intra, args.media)
-#     trains, vals, tests = split(datasets)
-#     args.__dict__['trains_size'] = len(trains)
-#     args.__dict__['vals_size'] = len(vals)
-#     args.__dict__['tests_size'] = len(tests)
+def main():
+    parser = create_arg_parser()
+    args = parser.parse_args()
+    emb_type = 'Word2VecWiki'
+    wv = WordVector(emb_type, args.emb_path)
+    is_intra = True
+    datasets = load_datasets(wv, is_intra, args.media)
+    trains, vals, tests = split(datasets)
+    args.__dict__['trains_size'] = len(trains)
+    args.__dict__['vals_size'] = len(vals)
+    args.__dict__['tests_size'] = len(tests)
 
-#     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1)
-#     dump_dic(args.__dict__, args.dump_dir, 'args.json')
-#     pprint(args.__dict__)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1)
+    dump_dic(args.__dict__, args.dump_dir, 'args.json')
+    pprint(args.__dict__)
 
-#     train(trains, vals, bilstm, args, lr=0.01, batch_size=16)
+    train(trains, vals, bilstm, args, lr=0.01, batch_size=16)
 
 if __name__ == '__main__':
     main()
