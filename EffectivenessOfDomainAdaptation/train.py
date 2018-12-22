@@ -77,7 +77,7 @@ def translate_df_y(df_list, keys, gpu_id):
         vec = vec.cuda()
     return vec
 
-def translate_batch(batch, gpu, case, emb_type):
+def translate_batch(batch, gpu, case):
     x = batch[:, 0]
     y = batch[:, 1]
     files = batch[:, 2]
@@ -125,7 +125,7 @@ def train(trains, vals, bilstm, args, lr, batch_size):
             #0 paddingするために，長さで降順にソートする．
             argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
             batch = batch[argsort_index]
-            x, y, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
+            x, y, _ = translate_batch(batch, args.gpu, args.case)
             batchsize = len(batch)
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -236,7 +236,7 @@ def calculate_f1(confusion_matrix):
     df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
     return df
 
-def predicted_log(batch, pred, target_case, dump_dir, corrects):
+def predicted_log(batch, pred, target_case, corrects):
     batchsize = len(batch)
     for i in range(batchsize):
         target_verb_index = batch[i][1].name
@@ -278,7 +278,7 @@ def test(tests, bilstm, args):
         #0 paddingするために，長さで降順にソートする．
         argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
         batch = batch[argsort_index]
-        x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
+        x, y, files = translate_batch(batch, args.gpu, args.case)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -295,7 +295,7 @@ def test(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j].item(), args.case)
             corrects.append(correct)
-        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
+        for domain, log in predicted_log(batch, pred, args.case, corrects):
             logs[domain].append(log)
 
     for domain in args.media:
