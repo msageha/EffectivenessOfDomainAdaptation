@@ -261,7 +261,10 @@ def predicted_log(batch, pred, target_case, dump_dir, corrects):
         predicted_argument_index = pred[i].item()
         actual_argument_index = int(batch[i][1][target_case].split(',')[0])
         target_verb = batch[i][0]['単語'][target_verb_index]
-        predicted_argument = batch[i][0]['単語'][predicted_argument_index]
+        if predicted_argument_index >= len(batch[i][0]):
+            predicted_argument = 'inter(zero)'
+        else:
+            predicted_argument = batch[i][0]['単語'][predicted_argument_index]
         actual_argument = batch[i][0]['単語'][actual_argument_index]
         sentence = ' '.join(batch[i][0]['単語'][4:])
         file = batch[i][2]
