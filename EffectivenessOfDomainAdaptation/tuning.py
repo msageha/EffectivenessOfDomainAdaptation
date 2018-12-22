@@ -20,7 +20,7 @@ def tuning(trains, vals, wv, args, trial):
 
     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=dropout_ratio, n_layers=n_layers)
 
-    lr = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
+    lr = trial.suggest_categorical('learning_rate', [1e-5, 1e-4, 1e-3, 1e-2])
     batch_size=trial.suggest_categorical('batch_size', [16, 32, 64])
     F1 = train(trains, vals, bilstm, args, lr=lr, batch_size=batch_size)
     return F1
