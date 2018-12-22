@@ -311,13 +311,13 @@ def test(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j].item(), args.case)
             corrects.append(correct)
-        # FOR debug
-        case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
-        correct_of_confusion_matrix = 0
-        for case_type in case_types:
-            correct_of_confusion_matrix += results[domain]['confusion_matrix']['actual'][case_type]['predicted'][case_type]
-        if correct_of_confusion_matrix != np.array(corrects).sum():
-            import ipdb; ipdb.set_trace();
+            # FOR debug
+            case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
+            correct_of_confusion_matrix = 0
+            for case_type in case_types:
+                correct_of_confusion_matrix += results[domain]['confusion_matrix']['actual'][case_type]['predicted'][case_type]
+            if correct_of_confusion_matrix != np.array(corrects).sum():
+                import ipdb; ipdb.set_trace();
         for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
             logs[domain].append(log)
 
