@@ -138,7 +138,7 @@ def train(trains, vals, bilstm, args, lr, batch_size):
             running_loss += loss.item()
 
         print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/batch_size)}\tacc(one_label): {running_correct/running_samples}')
-        _results, _ = test(vals, bilstm, args)
+        _results, _ = test(vals, bilstm, batch_size, args)
         results[epoch] = _results
         if args.save:
             save_model(epoch, bilstm, args.dump_dir, args.gpu)
@@ -261,7 +261,7 @@ def predicted_log(batch, pred, target_case, corrects):
         domain = return_file_domain(file)
         yield domain, log
 
-def test(tests, bilstm, args):
+def test(tests, bilstm, batch_size, args):
     results = defaultdict(lambda: defaultdict(float))
     logs = defaultdict(list)
     for domain in args.media:
@@ -271,8 +271,8 @@ def test(tests, bilstm, args):
     bilstm.eval()
     criterion = nn.CrossEntropyLoss()
     N = len(tests)
-    for i in tqdm(range(0, N, args.batch_size)):
-        batch = tests[i:i+args.batch_size]
+    for i in tqdm(range(0, N, batch_size)):
+        batch = tests[i:i+batch_size]
         batchsize = len(batch)
 
         #0 paddingするために，長さで降順にソートする．
