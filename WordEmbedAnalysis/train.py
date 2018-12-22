@@ -177,8 +177,9 @@ def train(trains, vals, bilstm, args):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc: {best_epochs[domain]["acc"]}')
 
 def initialize_confusion_matrix():
+    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(dep)_false', 'intra(zero)', 'intra(zero)_false', 'inter(zero)', 'inter(zero)_false']
+    index = pd.MultiIndex.from_arrays([['predicted']*10, case_types])
     case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
-    index = pd.MultiIndex.from_arrays([['predicted']*7, case_types])
     columns = pd.MultiIndex.from_arrays([['actual']*7, case_types])
     df = pd.DataFrame(data=0, index=index, columns=columns)
     return df
@@ -219,6 +220,8 @@ def calculate_confusion_matrix(confusion_matrix, _batch, _predict_index, target_
     else:
         #予測不正解時
         actual_case_type = _batch[1][f'{target_case}_type'].split(',')[0]
+        if predict_case_type == 'intra(dep)' or predict_case_type == 'intra(zero)' or predict_case_type == 'inter(zero)':
+            predict_case_type += '_false'
         is_correct = False
     confusion_matrix['actual'][actual_case_type]['predicted'][predict_case_type] += 1
     return is_correct
@@ -239,15 +242,15 @@ def calculate_f1(confusion_matrix):
         if (df['precision'][case_type]+df['recall'][case_type]) != 0:
             df['F1-score'][case_type] = (2*df['precision'][case_type]*df['recall'][case_type])/(df['precision'][case_type]+df['recall'][case_type])
     all_tp = 0
-    all_fp = 0
-    all_fn = 0
+    all_tp_fp = 0
+    all_tp_fn = 0
     for case_type in case_types:
         all_tp += confusion_matrix['actual', case_type]['predicted', case_type]
-        all_fp += sum(confusion_matrix.loc['predicted', case_type])
-        all_fn += sum(confusion_matrix['actual', case_type])
+        all_tp_fp += sum(confusion_matrix.loc['predicted', case_type])
+        all_tp_fn += sum(confusion_matrix['actual', case_type])
     df.loc['total'] = 0
-    df['precision']['total'] = all_tp/(all_tp+all_fp)
-    df['recall']['total'] = all_tp/(all_tp+all_fn)
+    df['precision']['total'] = all_tp/(all_tp_fp)
+    df['recall']['total'] = all_tp/(all_tp_fn)
     df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
     return df
 
