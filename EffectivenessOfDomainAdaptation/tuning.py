@@ -10,7 +10,7 @@ import sys
 sys.path.append('../utils')
 from loader import WordVector, load_datasets, split
 from model import BiLSTM
-from train import train, create_arg_parser,
+from train import train, create_arg_parser
 
 
 def hightper_params():
@@ -48,9 +48,10 @@ def main():
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
     
+    # 目的関数にデータを適用する
+    f = partial(tuning, trains, vals)
     study = optuna.create_study()
-    study.optimize(tuning, n_trials=1)
+    study.optimize(f, n_trials=1)
 
-    tuning(trial, trains, vals)
     print("best params: ", study.best_params)
     print("best test accuracy: ", 1 - study.best_value)
