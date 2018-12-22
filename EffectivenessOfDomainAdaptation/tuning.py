@@ -55,3 +55,6 @@ def main():
 
     print("best params: ", study.best_params)
     print("best test accuracy: ", 1 - study.best_value)
+
+if __name__ == '__main__':
+    main()
