@@ -215,8 +215,11 @@ def calculate_f1(confusion_matrix):
     for case_type in case_types:
         tp = confusion_matrix['actual', case_type]['predicted', case_type]
         #precision
-        if sum(confusion_matrix.loc['predicted', case_type]) != 0:
-            df['precision'][case_type] = tp/sum(confusion_matrix.loc['predicted', case_type])
+        tp_fp = sum(confusion_matrix.loc['predicted', case_type])
+        if case_type == 'intra(zero)' or case_type == 'intra(dep)' or case_type == 'inter(zero)':
+            tp_fp += sum(confusion_matrix.loc['predicted', f'{case_type}_false'])
+        if tp_fp != 0:
+            df['precision'][case_type] = tp/tp_fp
         #recall
         if sum(confusion_matrix['actual', case_type]) != 0:
             df['recall'][case_type] = tp/sum(confusion_matrix['actual', case_type])
@@ -243,7 +246,11 @@ def predicted_log(batch, pred, target_case, corrects):
         predicted_argument_index = pred[i].item()
         actual_argument_index = int(batch[i][1][target_case].split(',')[0])
         target_verb = batch[i][0]['単語'][target_verb_index]
-        predicted_argument = batch[i][0]['単語'][predicted_argument_index]
+        if predicted_argument_index >= len(batch[i][0]):
+            predicted_argument = 'inter(zero)'
+        else:
+    l        predicted_argument = batch[i][0]['単語'][predicted_argument_index]
+
         actual_argument = batch[i][0]['単語'][actual_argument_index]
         sentence = ' '.join(batch[i][0]['単語'][4:])
         file = batch[i][2]
