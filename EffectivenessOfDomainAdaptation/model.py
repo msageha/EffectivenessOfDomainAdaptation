@@ -135,8 +135,10 @@ class FeatureAugmentation(nn.Module):
 
         out2, hidden = self.specific_lstm_layers[domain](x, self.hidden)
         # TODO: concat!!!
-        import ipdb; ipdb.set_trace();
-        out = self.linear_layers[domain]()
+        out = torch.cat(
+            (out1, out2), dim=2
+        )
+        out = self.linear_layers[domain](out)
         return out
 
 
