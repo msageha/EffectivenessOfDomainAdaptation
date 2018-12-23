@@ -1,28 +1,21 @@
 import argparse
 from collections import defaultdict
-import json
 import numpy as np
 import torch.optim as optim
-import os
 import pandas as pd
 from pprint import pprint
 import random
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-import re
+
+from model import BiLSTM, FeatureAugmentation, ClassProbabilityShift
 
 import sys
 sys.path.append('../utils')
 from loader import WordVector, load_datasets, split, split_each_domain
-from model import BiLSTM, FeatureAugmentation
-
-def is_num(text):
-    m = re.match('\A[0-9]+\Z', text)
-    if m:
-        return True
-    else:
-        return False
+from store import dump_dict
+from subfunc import return_file_domain, initialize_confusion_matrix, calculate_confusion_matrix, calculate_f1, predicted_log
 
 # init model
 def weights_init(m):
@@ -43,15 +36,15 @@ def create_arg_parser():
     return parser
 
 def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model):
-    emb_dim = 200
-    class_num = 2
     is_gpu = True
     if gpu == -1:
         is_gpu = False
     if model=='Base' or model=='FT':
-        bilstm = BiLSTM(emb_dim, class_num, vocab_size, v_vec, dropout_ratio, n_layers, is_gpu, )
+        bilstm = BiLSTM(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'FA':
-        bilstm = FeatureAugmentation(emb_dim, class_num, vocab_size, v_vec, dropout_ratio, n_layers, is_gpu)
+        bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, gpu=is_gpu)
+    elif model == 'CPS':
+        bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, statistics_of_each_case_type=None, gpu=is_gpu)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -60,11 +53,6 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model):
         weights_init(m)
 
     return bilstm
-
-def dump_dic(dic, dump_dir, file_name):
-    os.makedirs(f'./{dump_dir}/', exist_ok=True)
-    with open(f'./{dump_dir}/{file_name}', 'w') as f:
-        json.dump(dic, f, indent=2)
 
 def translate_df_tensor(df_list, keys, gpu_id):
     vec = [np.array(i[keys], dtype=np.int) for i in df_list]
@@ -165,7 +153,7 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
         if args.save:
             save_model(epoch, bilstm, args.dump_dir, args.gpu)
     if args.save:
-        dump_dic(results, args.dump_dir, 'training_logs.json')
+        dump_dict(results, args.dump_dir, 'training_logs')
     best_epochs = defaultdict(lambda: defaultdict(float))
     for epoch in results:
         for domain in sorted(results[epoch].keys()):
@@ -174,121 +162,12 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
                 best_epochs[domain]['acc(one_label)'] = results[epoch][domain]['acc(one_label)']
                 best_epochs[domain]['epoch'] = epoch
     if args.save:
-        dump_dic(best_epochs, args.dump_dir, 'training_result.json')
+        dump_dict(best_epochs, args.dump_dir, 'training_result')
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
     return 1 - best_epochs['All']["F1-score(total)"]
 
-def initialize_confusion_matrix():
-    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(dep)_false', 'intra(zero)', 'intra(zero)_false', 'inter(zero)', 'inter(zero)_false']
-    index = pd.MultiIndex.from_arrays([['predicted']*10, case_types])
-    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
-    columns = pd.MultiIndex.from_arrays([['actual']*7, case_types])
-    df = pd.DataFrame(data=0, index=index, columns=columns)
-    return df
-
-def calculate_confusion_matrix(confusion_matrix, _batch, _predict_index, target_case):
-    if _predict_index == 0:
-        predict_case_type = 'none'
-    elif _predict_index == 1:
-        predict_case_type = 'exoX'
-    elif _predict_index == 2:
-        predict_case_type = 'exo2'
-    elif _predict_index == 3:
-        predict_case_type = 'exo1'
-    else:
-        target_verb_index = _batch[1].name
-        verb_phrase_number = _batch[0]['n文節目'][target_verb_index]
-        if 'n文目' in _batch[0].keys() and _batch[0]['n文目'][target_verb_index] != _batch[0]['n文目'][_predict_index]:
-            predict_case_type = 'inter(zero)'
-        elif _predict_index >= len(_batch[0]):
-            predict_case_type = 'inter(zero)'
-        else:
-            #文内解析時（文内解析時は，文間ゼロ照応に対して予測することはありえない）
-            predict_dependency_relation_phrase_number = _batch[0]['係り先文節'][_predict_index]
-            if verb_phrase_number == predict_dependency_relation_phrase_number:
-                predict_case_type = 'intra(dep)'
-            else:
-                predict_case_type = 'intra(zero)'
-
-    correct_case_index_list = [int(i) for i in _batch[1][target_case].split(',')]
-    for correct_case_index in correct_case_index_list.copy():
-        eq = _batch[0]['eq'][correct_case_index]
-        if is_num(eq):
-            correct_case_index_list += np.arange(len(_batch[0]))[_batch[0]['eq']==eq].tolist()
-    if _predict_index in correct_case_index_list:
-        #予測正解時
-        actual_case_type = predict_case_type
-        is_correct = True
-    else:
-        #予測不正解時
-        actual_case_type = _batch[1][f'{target_case}_type'].split(',')[0]
-        if predict_case_type == 'intra(dep)' or predict_case_type == 'intra(zero)' or predict_case_type == 'inter(zero)':
-            predict_case_type += '_false'
-        is_correct = False
-    confusion_matrix['actual'][actual_case_type]['predicted'][predict_case_type] += 1
-    return is_correct
-
-def calculate_f1(confusion_matrix):
-    case_types = ['none', 'exo1', 'exo2', 'exoX', 'intra(dep)', 'intra(zero)', 'inter(zero)']
-    columns = ['precision', 'recall', 'F1-score']
-    df = pd.DataFrame(data=0.0, index=case_types, columns=columns)
-    for case_type in case_types:
-        tp = confusion_matrix['actual', case_type]['predicted', case_type]
-        #precision
-        tp_fp = sum(confusion_matrix.loc['predicted', case_type])
-        if case_type == 'intra(zero)' or case_type == 'intra(dep)' or case_type == 'inter(zero)':
-            tp_fp += sum(confusion_matrix.loc['predicted', f'{case_type}_false'])
-        if tp_fp != 0:
-            df['precision'][case_type] = tp/tp_fp
-        #recall
-        if sum(confusion_matrix['actual', case_type]) != 0:
-            df['recall'][case_type] = tp/sum(confusion_matrix['actual', case_type])
-        #F1-score
-        if (df['precision'][case_type]+df['recall'][case_type]) != 0:
-            df['F1-score'][case_type] = (2*df['precision'][case_type]*df['recall'][case_type])/(df['precision'][case_type]+df['recall'][case_type])
-    all_tp = 0
-    all_tp_fp = 0
-    all_tp_fn = 0
-    for case_type in case_types:
-        all_tp += confusion_matrix['actual', case_type]['predicted', case_type]
-        all_tp_fp += sum(confusion_matrix.loc['predicted', case_type])
-        all_tp_fn += sum(confusion_matrix['actual', case_type])
-    df.loc['total'] = 0
-    df['precision']['total'] = all_tp/(all_tp_fp)
-    df['recall']['total'] = all_tp/(all_tp_fn)
-    df['F1-score']['total'] = (2*df['precision']['total']*df['recall']['total'])/(df['precision']['total']+df['recall']['total'])
-    return df
-
-def predicted_log(batch, pred, target_case, corrects):
-    batchsize = len(batch)
-    for i in range(batchsize):
-        target_verb_index = batch[i][1].name
-        predicted_argument_index = pred[i].item()
-        actual_argument_index = int(batch[i][1][target_case].split(',')[0])
-        target_verb = batch[i][0]['単語'][target_verb_index]
-        if predicted_argument_index >= len(batch[i][0]):
-            predicted_argument = 'inter(zero)'
-        else:
-            predicted_argument = batch[i][0]['単語'][predicted_argument_index]
-
-        actual_argument = batch[i][0]['単語'][actual_argument_index]
-        sentence = ' '.join(batch[i][0]['単語'][4:])
-        file = batch[i][2]
-        log = {
-            '正解': corrects[i],
-            '述語位置': target_verb_index - 4,
-            '述語': target_verb,
-            '正解項位置': actual_argument_index - 4,
-            '正解項': actual_argument,
-            '予測項位置': predicted_argument_index - 4,
-            '予測項': predicted_argument,
-            '解析対象文': sentence,
-            'ファイル': file
-        }
-        domain = return_file_domain(file)
-        yield domain, log
 
 def test(tests_dict, bilstm, batch_size, args):
     results = defaultdict(lambda: defaultdict(float))
@@ -369,19 +248,8 @@ def test(tests_dict, bilstm, batch_size, args):
         results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
-def return_file_domain(file):
-    domain_dict = {'PM':'雑誌','PN':'新聞', 'OW':'白書', 'OC':'Yahoo!知恵袋', 'OY':'Yahoo!ブログ', 'PB':'書籍'}
-    for domain in domain_dict:
-        if domain in file:
-            return domain
-
-def save_model(epoch, bilstm, dump_dir, gpu):
-    print('--- save model ---')
-    os.makedirs(f'./{dump_dir}/model/', exist_ok=True)
-    bilstm.cpu()
-    torch.save(bilstm.state_dict(), f'./{dump_dir}/model/{epoch}.pkl')
-    if gpu >= 0:
-        bilstm.cuda()
+def init_statistics_of_each_case_type(train_dict):
+    pass
 
 def main():
     parser = create_arg_parser()
@@ -391,13 +259,14 @@ def main():
     is_intra = True
     datasets = load_datasets(wv, is_intra, args.media)
     trains_dict, vals_dict, tests_dict = split_each_domain(datasets)
+    import ipdb; ipdb.set_trace();
 
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in args.media])
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
     args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
 
     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1, model=args.model)
-    dump_dic(args.__dict__, args.dump_dir, 'args.json')
+    dump_dict(args.__dict__, args.dump_dir, 'args')
     pprint(args.__dict__)
 
     train(trains_dict, vals_dict, bilstm, args, lr=0.01, batch_size=16)
