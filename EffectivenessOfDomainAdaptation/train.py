@@ -110,7 +110,7 @@ def translate_batch(batch, gpu, case):
 
     return x, y, files
 
-def train(trains, vals, bilstm, args, lr, batch_size):
+def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
     print('--- start training ---')
     epochs = args.max_epoch+1
     results = {}
@@ -120,12 +120,13 @@ def train(trains, vals, bilstm, args, lr, batch_size):
         batches = []
         if args.model =='FA' or args.model == 'MIX':
             for domain in args.media:
-                N = len(trains[domain])
+                N = len(trains_dict[domain])
                 perm = np.random.permutation(N)
                 for i in range(0, N, batch_size):
-                    batch = trains[perm[i:i+batch_size]]
+                    batch = trains_dict[perm[i:i+batch_size]]
                     batches.append(batch)
         else:
+            trains = np.hstack(trains_dict.values())
             N = len(trains)
             perm = np.random.permutation(N)
             for i in range(0, N, batch_size):
@@ -388,19 +389,17 @@ def main():
     wv = WordVector(emb_type, args.emb_path)
     is_intra = True
     datasets = load_datasets(wv, is_intra, args.media)
-    if args.model == 'FA' or args.model == 'MIX':
-        trains, vals, tests = split_each_domain(datasets)
-    else:
-        trains, vals, tests = split(datasets)
-        args.__dict__['trains_size'] = len(trains)
-        args.__dict__['vals_size'] = len(vals)
-        args.__dict__['tests_size'] = len(tests)
+    trains_dict, vals_dict, tests_dict = split_each_domain(datasets)
+
+    args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in args.media])
+    args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
+    args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
 
     bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1, model=args.model)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
 
-    train(trains, vals, bilstm, args, lr=0.01, batch_size=16)
+    train(trains_dict, vals_dict, bilstm, args, lr=0.01, batch_size=16)
 
 if __name__ == '__main__':
     main()

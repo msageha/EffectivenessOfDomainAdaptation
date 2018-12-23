@@ -70,7 +70,7 @@ class BiLSTM(nn.Module):
         return out
 
 class FeatureAugmentation(nn.Module):
-    def __init__(self, emb_dim, h_dim, n_labels, v_size, gpu=True, v_vec=None, batch_first=True):
+    def __init__(self, emb_dim, n_labels, v_size, v_vec, gpu=True, v_vec=None, batch_first=True):
         super(FeatureAugmentation, self).__init__()
         self.gpu = gpu
         self.h_dim = h_dim
