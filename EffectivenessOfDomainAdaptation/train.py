@@ -160,7 +160,7 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
             running_loss += loss.item()
 
         print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/batch_size)}\tacc(one_label): {running_correct/running_samples}')
-        _results, _ = test(vals, bilstm, batch_size, args)
+        _results, _ = test(vals_dict, bilstm, batch_size, args)
         results[epoch] = _results
         if args.save:
             save_model(epoch, bilstm, args.dump_dir, args.gpu)
