@@ -304,7 +304,7 @@ def test(tests, bilstm, batch_size, args):
             N = len(tests[domain])
             perm = np.random.permutation(N)
             for i in range(0, N, batch_size):
-                batch = tests[perm[i:i+batch_size]]
+                batch = tests(domain)[perm[i:i+batch_size]]
                 batches.append(batch)
     else:
         N = len(tests)
