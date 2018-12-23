@@ -560,10 +560,10 @@ def split_each_domain(dataset, sizes=[0.7, 0.1, 0.2]):
     for domain in dataset.keys():
         dataset_size = len(dataset[domain])
         end = int(sizes[0]/sum(sizes)*dataset_size)
-        train_dict[domain] = np.array(dataset[domain][:end])
+        trains_dict[domain] = np.array(dataset[domain][:end])
         start = end
         end += int(sizes[1]/sum(sizes)*dataset_size)
-        val_dict[domain] = np.array(dataset[domain][start:end])
+        vals_dict[domain] = np.array(dataset[domain][start:end])
         start = end
-        test_dict[domain] = np.array(dataset[domain][start:])
+        tests_dict[domain] = np.array(dataset[domain][start:])
     return trains_dict, vals_dict, tests_dict
