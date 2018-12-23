@@ -290,7 +290,7 @@ def predicted_log(batch, pred, target_case, corrects):
         domain = return_file_domain(file)
         yield domain, log
 
-def test(tests, bilstm, batch_size, args):
+def test(tests_dict, bilstm, batch_size, args):
     results = defaultdict(lambda: defaultdict(float))
     logs = defaultdict(list)
     for domain in args.media:
@@ -301,12 +301,13 @@ def test(tests, bilstm, batch_size, args):
     batches = []
     if args.model =='FA' or args.model == 'MIX':
         for domain in args.media:
-            N = len(tests[domain])
+            N = len(tests_dict[domain])
             perm = np.random.permutation(N)
             for i in range(0, N, batch_size):
-                batch = tests(domain)[perm[i:i+batch_size]]
+                batch = tests_dict[domain][perm[i:i+batch_size]]
                 batches.append(batch)
     else:
+        tests = np.hstack(tests_dict.values())
         N = len(tests)
         perm = np.random.permutation(N)
         for i in range(0, N, batch_size):
