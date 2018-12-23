@@ -123,7 +123,7 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
                 N = len(trains_dict[domain])
                 perm = np.random.permutation(N)
                 for i in range(0, N, batch_size):
-                    batch = trains_dict[perm[i:i+batch_size]]
+                    batch = trains_dict[domain][perm[i:i+batch_size]]
                     batches.append(batch)
         else:
             trains = np.hstack(trains_dict.values())
