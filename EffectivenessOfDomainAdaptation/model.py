@@ -102,7 +102,11 @@ class FeatureAugmentation(nn.Module):
             specific_lstm_layers[domain] = specific_lstm
         self.specific_lstm_layers = nn.ModuleDict(specific_lstm_layers)
 
-        self.l1 = nn.Linear(h_dim*2*2, n_labels)
+        linear_layers = {}
+        for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
+            l1 = nn.Linear(h_dim*2*2, n_labels)
+            linear_layers[domain] = l1
+        self.linear_layers = nn.ModuleDict(linear_layers)
 
     def init_hidden(self, b_size):
         h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
@@ -131,7 +135,8 @@ class FeatureAugmentation(nn.Module):
 
         out2, hidden = self.specific_lstm_layers[domain](x, self.hidden)
         # TODO: concat!!!
-        out = self.l1(out)
+        import ipdb; ipdb.set_trace();
+        out = self.linear_layers[domain]()
         return out
 
 

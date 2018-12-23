@@ -6,6 +6,7 @@ import torch.optim as optim
 import os
 import pandas as pd
 from pprint import pprint
+import random
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -13,8 +14,8 @@ import re
 
 import sys
 sys.path.append('../utils')
-from loader import WordVector, load_datasets, split
-from model import BiLSTM
+from loader import WordVector, load_datasets, split, split_each_domain
+from model import BiLSTM, FeatureAugmentation
 
 def is_num(text):
     m = re.match('\A[0-9]+\Z', text)
@@ -38,15 +39,19 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
+    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'FT', 'FA', 'CPS', 'VOT', 'MIX'])
     return parser
 
-def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers):
+def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model):
     emb_dim = 200
     class_num = 2
     is_gpu = True
     if gpu == -1:
         is_gpu = False
-    bilstm = BiLSTM(emb_dim, class_num, vocab_size, v_vec, dropout_ratio, n_layers, is_gpu, )
+    if model=='Base' or model=='FT':
+        bilstm = BiLSTM(emb_dim, class_num, vocab_size, v_vec, dropout_ratio, n_layers, is_gpu, )
+    elif model == 'FA':
+        bilstm = FeatureAugmentation(emb_dim, class_num, vocab_size, v_vec, dropout_ratio, n_layers, is_gpu)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -112,22 +117,38 @@ def train(trains, vals, bilstm, args, lr, batch_size):
     optimizer = optim.Adam(bilstm.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, epochs):
-        N = len(trains)
-        perm = np.random.permutation(N)
+        batches = []
+        if args.model =='FA' or args.model == 'MIX':
+            for domain in args.media:
+                N = len(trains[domain])
+                perm = np.random.permutation(N)
+                for i in range(0, N, batch_size):
+                    batch = trains[perm[i:i+batch_size]]
+                    batches.append(batch)
+        else:
+            N = len(trains)
+            perm = np.random.permutation(N)
+            for i in range(0, N, batch_size):
+                batch = trains[perm[i:i+batch_size]]
+                batches.append(batch)
+        random.shuffle(batches)
         running_loss = 0.0
         running_correct = 0
         running_samples = 0
         bilstm.train()
-        for i in tqdm(range(0, N, batch_size)):
+        for batch in tqdm(batches):
             bilstm.zero_grad()
             optimizer.zero_grad()
-            batch = trains[perm[i:i+batch_size]]
             #0 paddingするために，長さで降順にソートする．
             argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
             batch = batch[argsort_index]
-            x, y, _ = translate_batch(batch, args.gpu, args.case)
+            x, y, files = translate_batch(batch, args.gpu, args.case)
             batchsize = len(batch)
-            out = bilstm.forward(x)
+            if args.model == 'FA' or args.model == 'MIX':
+                domain = return_file_domain(files[0])
+                out = bilstm.forward(x, domain)
+            else:
+                out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
             pred = out.argmax(dim=2)[:, 1]
             running_correct += pred.eq(y.argmax(dim=1)).sum().item()
@@ -274,12 +295,24 @@ def test(tests, bilstm, batch_size, args):
     for domain in args.media:
         results[domain]['confusion_matrix'] = initialize_confusion_matrix()
     results['All']['confusion_matrix'] = initialize_confusion_matrix()
-
     bilstm.eval()
     criterion = nn.CrossEntropyLoss()
-    N = len(tests)
-    for i in tqdm(range(0, N, batch_size)):
-        batch = tests[i:i+batch_size]
+    batches = []
+    if args.model =='FA' or args.model == 'MIX':
+        for domain in args.media:
+            N = len(tests[domain])
+            perm = np.random.permutation(N)
+            for i in range(0, N, batch_size):
+                batch = tests[perm[i:i+batch_size]]
+                batches.append(batch)
+    else:
+        N = len(tests)
+        perm = np.random.permutation(N)
+        for i in range(0, N, batch_size):
+            batch = tests[perm[i:i+batch_size]]
+            batches.append(batch)
+    random.shuffle(batches)
+    for batch in tqdm(batches):
         batchsize = len(batch)
 
         #0 paddingするために，長さで降順にソートする．
@@ -287,13 +320,16 @@ def test(tests, bilstm, batch_size, args):
         batch = batch[argsort_index]
         x, y, files = translate_batch(batch, args.gpu, args.case)
 
-        out = bilstm.forward(x)
+        if args.model == 'FA' or args.model == 'MIX':
+            domain = return_file_domain(files[0])
+            out = bilstm.forward(x, domain)
+        else:
+            out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
 
         pred = out.argmax(dim=2)[:, 1]
         corrects = []
         for j, file in enumerate(files):
-
             correct = pred[j].eq(y[j].argmax()).item()
             domain = return_file_domain(file)
             results[domain]['correct'] += correct
@@ -352,12 +388,15 @@ def main():
     wv = WordVector(emb_type, args.emb_path)
     is_intra = True
     datasets = load_datasets(wv, is_intra, args.media)
-    trains, vals, tests = split(datasets)
-    args.__dict__['trains_size'] = len(trains)
-    args.__dict__['vals_size'] = len(vals)
-    args.__dict__['tests_size'] = len(tests)
+    if args.model == 'FA' or args.model == 'MIX':
+        trains, vals, tests = split_each_domain(datasets)
+    else:
+        trains, vals, tests = split(datasets)
+        args.__dict__['trains_size'] = len(trains)
+        args.__dict__['vals_size'] = len(vals)
+        args.__dict__['tests_size'] = len(tests)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1, model=args.model)
     dump_dic(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
 
