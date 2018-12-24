@@ -4,6 +4,7 @@ import json
 import numpy as np
 import pandas as pd
 import pickle
+import torch
 
 from regular_expression import is_num, extraction_num
 
