@@ -7,7 +7,7 @@ from tqdm import tqdm
 import numpy as np
 from collections import defaultdict
 
-from train import initialize_model, translate_batch
+import train
 
 import sys
 sys.path.append('../utils')
@@ -35,7 +35,7 @@ def run(tests, bilstm, args):
         # 0 paddingするために，長さで降順にソートする．
         argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
         batch = batch[argsort_index]
-        x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
+        x, y, files = train.translate_batch(batch, args.gpu, args.case, args.emb_type)
 
         out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -110,7 +110,7 @@ def main():
 
     _, _, tests = dl.split(args.dataset_type)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec= dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
+    bilstm = train.initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec= dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
 
     pprint(args.__dict__)
     val_results = max_f1_epochs_of_vals(args.load_dir)
