@@ -59,9 +59,9 @@ def run(tests, bilstm, args):
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
         results['All']['correct'] += results[domain]['correct']
-        for i in range(results[domain]['confusion_matrix'].shape[0]):
-            for j in range(results[domain]['confusion_matrix'].shape[1]):
-                results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
+        for i in range(results[domain]['confusion_matrix'].df.shape[0]):
+            for j in range(results[domain]['confusion_matrix'].df.shape[1]):
+                results['All']['confusion_matrix'].df.iat[i, j] += results[domain]['confusion_matrix'].df.iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
         results[domain]['acc(one_label)'] = results[domain]['correct'] / results[domain]['samples']
         results[domain]['F1'] = results[domain]['confusion_matrix'].calculate_f1()
@@ -70,7 +70,7 @@ def run(tests, bilstm, args):
     results['All']['F1'] = results['All']['confusion_matrix'].calculate_f1()
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
-        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
+        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].df.to_dict()
         tmp_dict1 = {}
         for key1 in results[domain]['confusion_matrix']:
             tmp_dict2 = {}
