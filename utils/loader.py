@@ -601,3 +601,10 @@ def load_config(args):
         if key == 'gpu':
             continue
         args.__dict__[key] = params[key]
+
+
+def load_model(epoch, bilstm, dump_dir, gpu):
+    print('--- load model ---')
+    bilstm.load_state_dict(torch.load(f'./{dump_dir}/model/{epoch}.pkl'))
+    if gpu>=0:
+        bilstm.cuda()
