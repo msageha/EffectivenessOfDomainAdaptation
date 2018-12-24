@@ -248,8 +248,12 @@ def test(tests_dict, bilstm, batch_size, args):
         results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
-def init_statistics_of_each_case_type(train_dict):
-    pass
+def init_statistics_of_each_case_type(trains_y, case_type):
+    case_type_counts = defaultdict(int)
+    for case_types in trains_y[f'{case}_type']:
+        case_type = case_types.split(',')[0]
+        case_type_counts[case_type] += 1
+    return case_type_counts
 
 def main():
     parser = create_arg_parser()
