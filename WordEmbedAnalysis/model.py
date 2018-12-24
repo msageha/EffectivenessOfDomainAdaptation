@@ -7,7 +7,7 @@ from allennlp.modules.elmo import Elmo, batch_to_ids
 
 class BiLSTM(nn.Module):
     def __init__(self, emb_dim, h_dim, n_labels, v_size,
-            gpu=True, v_vec=None, batch_first=True, emb_type=None, elmo_model_dir=None):
+                 gpu=True, v_vec=None, batch_first=True, emb_type=None, elmo_model_dir=None):
         super(BiLSTM, self).__init__()
         self.gpu = gpu
         self.h_dim = h_dim
