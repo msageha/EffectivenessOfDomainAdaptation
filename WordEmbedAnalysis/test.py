@@ -52,7 +52,7 @@ def run(tests, bilstm, args):
             results[domain]['loss'] += loss.item()
             correct = results[domain]['confusion_matrix'].calculate(batch[j], pred[j].item(), args.case)
             corrects.append(correct)
-        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
+        for domain, log in predicted_log(batch, pred, args.case, corrects):
             logs[domain].append(log)
 
     for domain in args.media:
