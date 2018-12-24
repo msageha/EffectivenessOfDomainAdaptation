@@ -129,7 +129,7 @@ def main():
         results[domain] = _results[domain]
         results[domain]['epoch'] = epoch
         logs[domain] = _logs[domain]
-    dump_dict(results, args.load_dir, 'test_logs.json')
+    dump_dict(results, args.load_dir, 'test_logs')
     dump_predict_logs(logs, args.load_dir)
 
 if __name__ == '__main__':

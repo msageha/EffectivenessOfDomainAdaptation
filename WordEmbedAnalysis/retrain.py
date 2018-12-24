@@ -85,7 +85,7 @@ def run(trains, vals, bilstm, args):
         _results, _ = test(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
-    dump_dict(results, args.dump_dir, 'training_logs.json')
+    dump_dict(results, args.dump_dir, 'training_logs')
     best_epochs = defaultdict(lambda: defaultdict(float))
     for epoch in results:
         for domain in sorted(results[epoch].keys()):
@@ -93,7 +93,7 @@ def run(trains, vals, bilstm, args):
                 best_epochs[domain]['F1-score(total)'] = results[epoch][domain]['F1']['F1-score']['total']
                 best_epochs[domain]['acc(one_label)'] = results[epoch][domain]['acc(one_label)']
                 best_epochs[domain]['epoch'] = epoch
-    dump_dict(best_epochs, args.dump_dir, 'training_result.json')
+    dump_dict(best_epochs, args.dump_dir, 'training_result')
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
