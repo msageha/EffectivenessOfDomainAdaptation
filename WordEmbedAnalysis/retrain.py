@@ -13,7 +13,8 @@ from tqdm import tqdm
 import re
 
 from model import BiLSTM
-from train import translate_batch, initialize_model
+import train
+# from train import translate_batch, initialize_model
 import test
 
 import sys
@@ -68,7 +69,7 @@ def run(trains, vals, bilstm, args):
             # 0 paddingするために，長さで降順にソートする．
             argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
             batch = batch[argsort_index]
-            x, y, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
+            x, y, _ = train.translate_batch(batch, args.gpu, args.case, args.emb_type)
             batchsize = len(batch)
             out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -112,7 +113,7 @@ def main():
         raise ValueError()
 
     trains, vals, _ = dl.split(args.dataset_type)
-    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
+    bilstm = train.initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
 
     pprint(args.__dict__)
 
