@@ -18,7 +18,7 @@ from store import dump_dict, dump_predict_logs
 from subfunc import return_file_domain, predicted_log
 
 
-def test(tests, bilstm, args):
+def run(tests, bilstm, args):
     results = defaultdict(lambda: defaultdict(float))
     logs = defaultdict(list)
     for domain in args.media:

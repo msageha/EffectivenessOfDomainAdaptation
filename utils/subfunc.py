@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from .regular_expression import is_num
+from regular_expression import is_num
 
 
 def return_file_domain(file):

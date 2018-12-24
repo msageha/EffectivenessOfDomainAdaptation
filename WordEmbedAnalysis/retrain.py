@@ -14,7 +14,7 @@ import re
 
 from model import BiLSTM
 from train import translate_batch, initialize_model
-from test import test
+import test
 
 import sys
 sys.path.append('../utils')
@@ -42,12 +42,12 @@ def calc_even_results(vals, bilstm, args):
     even_epochs = return_even_epochs(args.dump_dir)
     for epoch in even_epochs:
         load_model(epoch, bilstm, args.load_dir, args.gpu)
-        _results, _ = test(vals, bilstm, args)
+        _results, _ = test.run(vals, bilstm, args)
         results[epoch] = _results
     return results, epoch
 
 
-def retrain(trains, vals, bilstm, args):
+def run(trains, vals, bilstm, args):
     print('--- start retraining ---')
     epochs = args.max_epoch+1
     lr = 0.001  # 学習係数
@@ -116,7 +116,7 @@ def main():
 
     pprint(args.__dict__)
 
-    retrain(trains, vals, bilstm, args)
+    run(trains, vals, bilstm, args)
 
 
 if __name__ == '__main__':

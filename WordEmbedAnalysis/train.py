@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from test import test
+import test
 from model import BiLSTM
 
 import sys
@@ -120,7 +120,7 @@ def translate_batch(batch, gpu, case, emb_type):
     return x, y, files
 
 
-def train(trains, vals, bilstm, args):
+def run(trains, vals, bilstm, args):
     print('--- start training ---')
     epochs = args.max_epoch + 1
     lr = 0.001  # 学習係数
@@ -154,7 +154,7 @@ def train(trains, vals, bilstm, args):
             running_loss += loss.item()
 
         print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/args.batch_size)}\tacc(one_label): {running_correct/running_samples}')
-        _results, _ = test(vals, bilstm, args)
+        _results, _ = test.run(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
     dump_dict(results, args.dump_dir, 'training_logs.json')
@@ -191,7 +191,7 @@ def main():
     bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
     dump_dict(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
-    train(trains, vals, bilstm, args)
+    run(trains, vals, bilstm, args)
     # train_loader = data.DataLoader(trains, batch_size=16, shuffle=True)
     # vals_loader = data.DataLoader(vals, batch_size=16, shuffle=True)
 
