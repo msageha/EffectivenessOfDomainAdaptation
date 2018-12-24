@@ -82,7 +82,7 @@ def run(trains, vals, bilstm, args):
             running_loss += loss.item()
 
         print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/args.batch_size)}\tacc(one_label): {running_correct/running_samples}')
-        _results, _ = test(vals, bilstm, args)
+        _results, _ = test.run(vals, bilstm, args)
         results[epoch] = _results
         save_model(epoch, bilstm, args.dump_dir, args.gpu)
     dump_dict(results, args.dump_dir, 'training_logs')
