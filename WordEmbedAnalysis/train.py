@@ -13,7 +13,7 @@ from model import BiLSTM
 
 import sys
 sys.path.append('../utils')
-from loader import DatasetLoading
+from loader import DatasetLoading, load_model
 from store import save_model, dump_dict
 
 
