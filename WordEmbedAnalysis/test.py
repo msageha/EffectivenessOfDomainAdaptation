@@ -12,39 +12,11 @@ from train import initialize_model, translate_batch
 import sys
 sys.path.append('../utils')
 
-from loader import DatasetLoading
+from loader import DatasetLoading, load_config, load_model
 from calc_result import ConfusionMatrix
 from store import dump_dict, dump_predict_logs
-from subfunc import return_file_domain
+from subfunc import return_file_domain, predicted_log
 
-
-def predicted_log(batch, pred, target_case, dump_dir, corrects):
-    batchsize = len(batch)
-    for i in range(batchsize):
-        target_verb_index = batch[i][1].name
-        predicted_argument_index = pred[i].item()
-        actual_argument_index = int(batch[i][1][target_case].split(',')[0])
-        target_verb = batch[i][0]['単語'][target_verb_index]
-        if predicted_argument_index >= len(batch[i][0]):
-            predicted_argument = 'inter(zero)'
-        else:
-            predicted_argument = batch[i][0]['単語'][predicted_argument_index]
-        actual_argument = batch[i][0]['単語'][actual_argument_index]
-        sentence = ' '.join(batch[i][0]['単語'][4:])
-        file = batch[i][2]
-        log = {
-            '正解': corrects[i],
-            '述語位置': target_verb_index - 4,
-            '述語': target_verb,
-            '正解項位置': actual_argument_index - 4,
-            '正解項': actual_argument,
-            '予測項位置': predicted_argument_index - 4,
-            '予測項': predicted_argument,
-            '解析対象文': sentence,
-            'ファイル': file
-        }
-        domain = return_file_domain(file)
-        yield domain, log
 
 def test(tests, bilstm, args):
     results = defaultdict(lambda: defaultdict(float))
@@ -57,10 +29,10 @@ def test(tests, bilstm, args):
     criterion = nn.CrossEntropyLoss()
     N = len(tests)
     for i in tqdm(range(0, N, args.batch_size)):
-        batch = tests[i:i+args.batch_size]
+        batch = tests[i:i + args.batch_size]
         batchsize = len(batch)
 
-        #0 paddingするために，長さで降順にソートする．
+        # 0 paddingするために，長さで降順にソートする．
         argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
         batch = batch[argsort_index]
         x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
@@ -91,10 +63,10 @@ def test(tests, bilstm, args):
             for j in range(results[domain]['confusion_matrix'].shape[1]):
                 results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
-        results[domain]['acc(one_label)'] = results[domain]['correct']/results[domain]['samples']
+        results[domain]['acc(one_label)'] = results[domain]['correct'] / results[domain]['samples']
         results[domain]['F1'] = results[domain]['confusion_matrix'].calculate_f1()
     results['All']['loss'] /= results['All']['samples']
-    results['All']['acc(one_label)'] = results['All']['correct']/results['All']['samples']
+    results['All']['acc(one_label)'] = results['All']['correct'] / results['All']['samples']
     results['All']['F1'] = results['All']['confusion_matrix'].calculate_f1()
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
@@ -109,30 +81,19 @@ def test(tests, bilstm, args):
         results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
+
 def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--gpu', '-g', dest='gpu', type=int, default=-1, help='GPU ID for execution')
     parser.add_argument('--load_dir', dest='load_dir', type=str, required=True, help='model load directory path')
     return parser
 
-def load_config(args):
-    with open(f'{args.load_dir}/args.json') as f:
-        params = json.load(f)
-    for key in params:
-        if key=='gpu':
-            continue
-        args.__dict__[key] = params[key]
-
-def load_model(epoch, bilstm, dump_dir, gpu):
-    print('--- load model ---')
-    bilstm.load_state_dict(torch.load(f'./{dump_dir}/model/{epoch}.pkl'))
-    if gpu>=0:
-        bilstm.cuda()
 
 def max_f1_epochs_of_vals(train_result_path):
     with open(f'{train_result_path}/training_result.json') as f:
         val_results = json.load(f)
     return val_results
+
 
 def main():
     parser = create_arg_parser()

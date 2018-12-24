@@ -16,17 +16,19 @@ sys.path.append('../utils')
 from loader import DatasetLoading
 from store import save_model, dump_dict
 
+
 # init model
 def weights_init(m):
     classname = m.__class__.__name__
     if hasattr(m, 'weight') and (classname.find('Embedding') == -1):
         nn.init.xavier_uniform_(m.weight.data, gain=nn.init.calculate_gain('relu'))
 
+
 def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--type', dest='dataset_type', required=True, choices=['intra', 'inter'], help='dataset: "intra" or "inter"')
     parser.add_argument('--epochs', '-e', dest='max_epoch', type=int, default=15, help='max epoch')
-    parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'Word2VecWiki','FastText', 'ELMo', 'Random', 'ELMoForManyLangs', 'None'], help='word embedding type')
+    parser.add_argument('--emb_type', dest='emb_type', required=True, choices=['Word2Vec', 'Word2VecWiki', 'FastText', 'ELMo', 'Random', 'ELMoForManyLangs', 'None'], help='word embedding type')
     parser.add_argument('--emb_path', dest='emb_path', help='word embedding path')
     parser.add_argument('--emb_requires_grad_false', dest='emb_requires_grad', action='store_false', help='fixed word embedding or not')
     parser.add_argument('--emb_dim', type=int, default=200, help='word embedding dimension')
@@ -36,6 +38,7 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
     return parser
+
 
 def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
     emb_dim = args.emb_dim
@@ -63,6 +66,7 @@ def initialize_model(gpu, vocab_size, v_vec, emb_requires_grad, args):
 
     return bilstm
 
+
 def translate_df_tensor(df_list, keys, gpu_id):
     vec = [np.array(i[keys], dtype=np.int) for i in df_list]
     vec = np.array(vec)
@@ -72,12 +76,14 @@ def translate_df_tensor(df_list, keys, gpu_id):
         vec = vec.cuda()
     return vec
 
+
 def translate_df_y(df_list, keys, gpu_id):
     vec = [int(i[keys].split(',')[0]) for i in df_list]
     vec = torch.tensor(vec)
     if gpu_id >= 0:
         vec = vec.cuda()
     return vec
+
 
 def translate_batch(batch, gpu, case, emb_type):
     x = batch[:, 0]
@@ -102,7 +108,7 @@ def translate_batch(batch, gpu, case, emb_type):
         x_feature_emb = translate_df_tensor(x, [f'形態素{i}'], gpu)
         x_feature_emb = x_feature_emb.reshape(batchsize, -1)
         x_feature_emb_list.append(x_feature_emb)
-    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目','is主辞', 'is機能語','is_target_verb', '述語からの距離'], gpu)
+    x_feature = translate_df_tensor(x, ['n単語目', 'n文節目', 'is主辞', 'is機能語', 'is_target_verb', '述語からの距離'], gpu)
     x = [x_wordID, x_feature_emb_list, x_feature]
 
     y = translate_df_y(y, case, -1)
@@ -113,10 +119,11 @@ def translate_batch(batch, gpu, case, emb_type):
 
     return x, y, files
 
+
 def train(trains, vals, bilstm, args):
     print('--- start training ---')
-    epochs = args.max_epoch+1
-    lr = 0.001 #学習係数
+    epochs = args.max_epoch + 1
+    lr = 0.001  # 学習係数
     results = {}
     optimizer = optim.Adam(bilstm.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -130,8 +137,8 @@ def train(trains, vals, bilstm, args):
         for i in tqdm(range(0, N, args.batch_size)):
             bilstm.zero_grad()
             optimizer.zero_grad()
-            batch = trains[perm[i:i+args.batch_size]]
-            #0 paddingするために，長さで降順にソートする．
+            batch = trains[perm[i:i + args.batch_size]]
+            # 0 paddingするために，長さで降順にソートする．
             argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
             batch = batch[argsort_index]
             x, y, _ = translate_batch(batch, args.gpu, args.case, args.emb_type)
@@ -163,6 +170,7 @@ def train(trains, vals, bilstm, args):
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
 
+
 def main():
     parser = create_arg_parser()
     args = parser.parse_args()
@@ -180,7 +188,7 @@ def main():
     args.__dict__['vals_size'] = len(vals)
     args.__dict__['tests_size'] = len(tests)
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec= dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
+    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
     dump_dict(args.__dict__, args.dump_dir, 'args.json')
     pprint(args.__dict__)
     train(trains, vals, bilstm, args)
