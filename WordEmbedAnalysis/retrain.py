@@ -32,7 +32,7 @@ def create_arg_parser():
 
 
 def return_even_epochs(path):
-    files = os.listdir(f'./{dump_dir}/model/')
+    files = os.listdir(f'./{path}/model/')
     files = [int(file.split('.')[0]) for file in files]
     even_epochs = sorted(files)
     return even_epochs
