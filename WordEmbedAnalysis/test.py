@@ -1,15 +1,113 @@
 import argparse
 import json
-import os
 from pprint import pprint
 import torch
+from torch import nn
+from tqdm import tqdm
+import numpy as np
+from collections import defaultdict
+
+from train import initialize_model, translate_batch
 
 import sys
 sys.path.append('../utils')
 
-from loader import WordVector, load_datasets, split
-from model import BiLSTM
-from train import test, initialize_model, translate_df_tensor, translate_batch, dump_dic
+from loader import DatasetLoading
+from calc_result import ConfusionMatrix
+from store import dump_dict, dump_predict_logs
+from subfunc import return_file_domain
+
+
+def predicted_log(batch, pred, target_case, dump_dir, corrects):
+    batchsize = len(batch)
+    for i in range(batchsize):
+        target_verb_index = batch[i][1].name
+        predicted_argument_index = pred[i].item()
+        actual_argument_index = int(batch[i][1][target_case].split(',')[0])
+        target_verb = batch[i][0]['単語'][target_verb_index]
+        if predicted_argument_index >= len(batch[i][0]):
+            predicted_argument = 'inter(zero)'
+        else:
+            predicted_argument = batch[i][0]['単語'][predicted_argument_index]
+        actual_argument = batch[i][0]['単語'][actual_argument_index]
+        sentence = ' '.join(batch[i][0]['単語'][4:])
+        file = batch[i][2]
+        log = {
+            '正解': corrects[i],
+            '述語位置': target_verb_index - 4,
+            '述語': target_verb,
+            '正解項位置': actual_argument_index - 4,
+            '正解項': actual_argument,
+            '予測項位置': predicted_argument_index - 4,
+            '予測項': predicted_argument,
+            '解析対象文': sentence,
+            'ファイル': file
+        }
+        domain = return_file_domain(file)
+        yield domain, log
+
+def test(tests, bilstm, args):
+    results = defaultdict(lambda: defaultdict(float))
+    logs = defaultdict(list)
+    for domain in args.media:
+        results[domain]['confusion_matrix'] = ConfusionMatrix()
+    results['All']['confusion_matrix'] = ConfusionMatrix()
+
+    bilstm.eval()
+    criterion = nn.CrossEntropyLoss()
+    N = len(tests)
+    for i in tqdm(range(0, N, args.batch_size)):
+        batch = tests[i:i+args.batch_size]
+        batchsize = len(batch)
+
+        #0 paddingするために，長さで降順にソートする．
+        argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
+        batch = batch[argsort_index]
+        x, y, files = translate_batch(batch, args.gpu, args.case, args.emb_type)
+
+        out = bilstm.forward(x)
+        out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
+
+        pred = out.argmax(dim=2)[:, 1]
+        corrects = []
+        for j, file in enumerate(files):
+
+            correct = pred[j].eq(y[j].argmax()).item()
+            domain = return_file_domain(file)
+            results[domain]['correct'] += correct
+            results[domain]['samples'] += 1
+            loss = criterion(out[j].reshape(1, 2, -1), y[j].reshape(1, -1))
+            results[domain]['loss'] += loss.item()
+            correct = results[domain]['confusion_matrix'].calculate(batch[j], pred[j].item(), args.case)
+            corrects.append(correct)
+        for domain, log in predicted_log(batch, pred, args.case, args.dump_dir, corrects):
+            logs[domain].append(log)
+
+    for domain in args.media:
+        results['All']['loss'] += results[domain]['loss']
+        results['All']['samples'] += results[domain]['samples']
+        results['All']['correct'] += results[domain]['correct']
+        for i in range(results[domain]['confusion_matrix'].shape[0]):
+            for j in range(results[domain]['confusion_matrix'].shape[1]):
+                results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
+        results[domain]['loss'] /= results[domain]['samples']
+        results[domain]['acc(one_label)'] = results[domain]['correct']/results[domain]['samples']
+        results[domain]['F1'] = results[domain]['confusion_matrix'].calculate_f1()
+    results['All']['loss'] /= results['All']['samples']
+    results['All']['acc(one_label)'] = results['All']['correct']/results['All']['samples']
+    results['All']['F1'] = results['All']['confusion_matrix'].calculate_f1()
+    for domain in sorted(results.keys()):
+        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
+        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
+        tmp_dict1 = {}
+        for key1 in results[domain]['confusion_matrix']:
+            tmp_dict2 = {}
+            for key2 in results[domain]['confusion_matrix'][key1]:
+                tmp_dict2['_'.join(key2)] = results[domain]['confusion_matrix'][key1][key2]
+            tmp_dict1['_'.join(key1)] = tmp_dict2
+        results[domain]['confusion_matrix'] = tmp_dict1
+        results[domain]['F1'] = results[domain]['F1'].to_dict()
+    return results, logs
 
 def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
@@ -18,7 +116,6 @@ def create_arg_parser():
     return parser
 
 def load_config(args):
-    # "intra/Word2Vec_Fix/All_PN/ga" --emb_requires_grad_false
     with open(f'{args.load_dir}/args.json') as f:
         params = json.load(f)
     for key in params:
@@ -37,30 +134,22 @@ def max_f1_epochs_of_vals(train_result_path):
         val_results = json.load(f)
     return val_results
 
-def dump_predict_logs(logs, dump_dir):
-    os.makedirs(f'./{dump_dir}/predicts/', exist_ok=True)
-    for domain in logs.keys():
-        with open(f'{dump_dir}/predicts/{domain}.tsv', 'w') as f:
-            f.write('\t'.join(logs[domain][0].keys()))
-            f.write('\n')
-            for log in logs[domain]:
-                values = [str(value) for value in log.values()]
-                f.write('\t'.join(values))
-                f.write('\n')
-
 def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     load_config(args)
 
-    wv = WordVector(args.emb_type, args.emb_path)
-    is_intra = True
-    if args.dataset_type == 'inter':
-        is_intra = False
-    datasets = load_datasets(wv, is_intra, args.media)
-    _, _, tests = split(datasets)
+    dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media)
+    if args.dataset_type == 'intra':
+        dl.making_intra_df()
+    elif args.dataset_type == 'inter':
+        dl.making_inter_df()
+    else:
+        raise ValueError()
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
+    _, _, tests = dl.split(args.dataset_type)
+
+    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec= dl.wv.vectors, emb_requires_grad=args.emb_requires_grad, args=args)
 
     pprint(args.__dict__)
     val_results = max_f1_epochs_of_vals(args.load_dir)
@@ -79,7 +168,7 @@ def main():
         results[domain] = _results[domain]
         results[domain]['epoch'] = epoch
         logs[domain] = _logs[domain]
-    dump_dic(results, args.load_dir, 'test_logs.json')
+    dump_dict(results, args.load_dir, 'test_logs.json')
     dump_predict_logs(logs, args.load_dir)
 
 if __name__ == '__main__':
