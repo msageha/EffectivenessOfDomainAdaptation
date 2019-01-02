@@ -12,17 +12,17 @@ module load cuda/9.0.176 cudnn/7.1 gnuplot
 source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/WordEmbedAnalysis
 #w2v BCCWJ All
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All/ni
 
 #w2v Wikipedia
-python3 train.py --type intra --emb_type Word2VecWiki --emb_path ../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt --gpu 0 --case o --dump_dir intra/Word2Vec/entity_vector/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/entity_vector/o
+python3 train.py --type intra --emb_type Word2VecWiki --emb_path ../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt --gpu 0 --case ni --dump_dir intra/Word2Vec/entity_vector/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/entity_vector/ni
 
 #FastText
-python3 train.py --type intra --emb_type FastText --emb_path ../../data/embedding/FastText/All.bin --gpu 0 --case o --dump_dir intra/FastText/All/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/FastText/All/o
+python3 train.py --type intra --emb_type FastText --emb_path ../../data/embedding/FastText/All.bin --gpu 0 --case ni --dump_dir intra/FastText/All/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/FastText/All/ni
 
 #None
-python3 train.py --type intra --emb_type None --emb_path '' --gpu 0 --case o --dump_dir intra/None/o --emb_dim 0
-python3 test.py --gpu 0 --load_dir intra/None/o
+python3 train.py --type intra --emb_type None --emb_path '' --gpu 0 --case ni --dump_dir intra/None/ni --emb_dim 0
+python3 test.py --gpu 0 --load_dir intra/None/ni

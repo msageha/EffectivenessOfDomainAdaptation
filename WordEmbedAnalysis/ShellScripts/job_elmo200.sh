@@ -13,7 +13,7 @@ source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/WordEmbedAnalysis
 
 # configure
-case=(o)
+case=(ni)
 type=intra
 emb_type=ELMo
 emb_path='../../data/embedding/ELMo'
@@ -23,5 +23,5 @@ emb_dim=(1024 200)
 #     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
 #     " ::: ${case[@]} ::: ${emb_dim[@]}
 
-python3 train.py --type intra --emb_type ELMo --emb_path ../../data/embedding/ELMo/200 --gpu 0 --case o --dump_dir intra/ELMo/200/o --emb_dim 200 --epochs 30
-python3 test.py --gpu 0 --load_dir intra/ELMo/200/o
+python3 train.py --type intra --emb_type ELMo --emb_path ../../data/embedding/ELMo/200 --gpu 0 --case ni --dump_dir intra/ELMo/200/ni --emb_dim 200 --epochs 30
+python3 test.py --gpu 0 --load_dir intra/ELMo/200/ni

@@ -13,7 +13,7 @@ source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/WordEmbedAnalysis
 
 # configure
-case=(ga)
+case=(ni)
 type=intra
 emb_type=Random
 emb_path='../../data/embedding/Random'
@@ -24,8 +24,8 @@ file_name=(bccwj_intra_training word2vec_bccwj)
 #     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
 #     " ::: ${case[@]} ::: ${file_name[@]}
 
-python3 train.py --type intra --emb_type Random --emb_path ../../data/embedding/Random/bccwj_intra_training.index --gpu 0 --case o --dump_dir intra/Random/bccwj_intra_training/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Random/bccwj_intra_training/o
+python3 train.py --type intra --emb_type Random --emb_path ../../data/embedding/Random/bccwj_intra_training.index --gpu 0 --case ni --dump_dir intra/Random/bccwj_intra_training/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Random/bccwj_intra_training/ni
 
-python3 train.py --type intra --emb_type Random --emb_path ../../data/embedding/Random/word2vec_bccwj.index --gpu 0 --case o --dump_dir intra/Random/word2vec_bccwj/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Random/word2vec_bccwj/o
+python3 train.py --type intra --emb_type Random --emb_path ../../data/embedding/Random/word2vec_bccwj.index --gpu 0 --case ni --dump_dir intra/Random/word2vec_bccwj/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Random/word2vec_bccwj/ni

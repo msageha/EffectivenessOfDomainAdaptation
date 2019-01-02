@@ -13,7 +13,7 @@ source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/WordEmbedAnalysis
 
 # configure
-case=(o)
+case=(ni)
 type=intra
 emb_type=Word2Vec
 emb_path='../../data/embedding/Word2Vec'
@@ -24,20 +24,20 @@ w2v_media=(All_OC All_OY All_OW All_PB All_PM All_PN)
 #     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
 #     " ::: ${case[@]} ::: ${w2v_media[@]}
 
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OC.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All_OC/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OC/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OC.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All_OC/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OC/ni
 
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OY.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All_OY/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OY/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OY.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All_OY/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OY/ni
 
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OW.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All_OW/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OW/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_OW.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All_OW/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_OW/ni
 
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PB.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All_PB/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PB/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PB.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All_PB/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PB/ni
 
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PM.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All_PM/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PM/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PM.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All_PM/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PM/ni
 
-python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PN.bin --gpu 0 --case o --dump_dir intra/Word2Vec/All_PN/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PN/o
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All_PN.bin --gpu 0 --case ni --dump_dir intra/Word2Vec/All_PN/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Word2Vec/All_PN/ni
