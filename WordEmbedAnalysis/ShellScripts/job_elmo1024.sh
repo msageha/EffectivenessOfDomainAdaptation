@@ -23,5 +23,5 @@ emb_dim=(1024 200)
 #     python3 test.py --gpu 0 --load_dir $type/$emb_type/{2}/{1}
 #     " ::: ${case[@]} ::: ${emb_dim[@]}
 
-python3 train.py --type intra --emb_type ELMo --emb_path ../../data/embedding/ELMo/1024 --gpu 0 --case ga --dump_dir intra/ELMo/1024/ga --emb_dim 1024 --epochs 30
-python3 test.py --gpu 0 --load_dir intra/ELMo/1024/ga
+python3 train.py --type intra --emb_type ELMo --emb_path ../../data/embedding/ELMo/1024 --gpu 0 --case o --dump_dir intra/ELMo/1024/o --emb_dim 1024 --epochs 30
+python3 test.py --gpu 0 --load_dir intra/ELMo/1024/o
