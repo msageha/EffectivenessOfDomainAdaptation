@@ -247,7 +247,7 @@ def test(tests_dict, bilstm, batch_size, args):
                 tmp_dict2['_'.join(key2)] = results[domain]['confusion_matrix'][key1][key2]
             tmp_dict1['_'.join(key1)] = tmp_dict2
         results[domain]['confusion_matrix'] = tmp_dict1
-        results[domain]['F1'] = results[domain]['F1'].df.to_dict()
+        results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
 def init_statistics_of_each_case_type(trains_y, case_type):
