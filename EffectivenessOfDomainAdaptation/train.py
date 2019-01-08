@@ -42,7 +42,7 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model):
     if model=='Base' or model=='FT':
         bilstm = BiLSTM(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'FA':
-        bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, gpu=is_gpu)
+        bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'CPS':
         bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, statistics_of_each_case_type=None, gpu=is_gpu)
     if is_gpu:
@@ -269,11 +269,11 @@ def main():
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
     args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=1, model=args.model)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model)
     dump_dict(args.__dict__, args.dump_dir, 'args')
     pprint(args.__dict__)
 
-    train(trains_dict, vals_dict, bilstm, args, lr=0.01, batch_size=16)
+    train(trains_dict, vals_dict, bilstm, args, lr=0.001, batch_size=64)
 
 if __name__ == '__main__':
     main()

@@ -70,13 +70,15 @@ class BiLSTM(nn.Module):
         return out
 
 class FeatureAugmentation(nn.Module):
-    def __init__(self, v_size, v_vec, dropout_ratio, emb_dim=200, n_labels=2, gpu=True, batch_first=True):
+    def __init__(self, v_size, v_vec, dropout_ratio, n_layers, emb_dim=200, n_labels=2, gpu=True, batch_first=True):
         super(FeatureAugmentation, self).__init__()
         self.gpu = gpu
         self.h_dim = (emb_dim+34)//2
         self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
         v_vec = torch.tensor(v_vec)
         self.word_embed.weight.data.copy_(v_vec)
+        self.dropout_ratio = dropout_ratio
+        self.n_layers = n_layers
 
         feature_embed_layers = []
         feature_embed_size = {
@@ -94,19 +96,25 @@ class FeatureAugmentation(nn.Module):
             feature_embed_layers.append(feature_embed)
         self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
 
-        self.common_lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+        common_lstm_layers = []
+        for i in range(self.n_layers):
+            lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+            common_lstm_layers.append(lstm)
+        self.common_lstm_layers = nn.ModuleList(lstm_layers)
 
-        specific_lstm_layers = {}
-        for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
-            specific_lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
-            specific_lstm_layers[domain] = specific_lstm
-        self.specific_lstm_layers = nn.ModuleDict(specific_lstm_layers)
+        specific_lstm_layers = []
+        for i in range(self.n_layers):
+            specific_lstm = {}
+            for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
+                lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+                specific_lstm[domain] = lstm
+            self.specific_lstm_layers.append(nn.ModuleDict(specific_lstm_layers))
 
-        linear_layers = {}
+        l1_layer = {}
         for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
             l1 = nn.Linear(self.h_dim*2*2, n_labels)
-            linear_layers[domain] = l1
-        self.linear_layers = nn.ModuleDict(linear_layers)
+            l1_layer[domain] = l1
+        self.l1_layer = nn.ModuleDict(l1_layer)
 
     def init_hidden(self, b_size):
         h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
@@ -130,12 +138,16 @@ class FeatureAugmentation(nn.Module):
             dim=2
         )
 
-        out1, hidden = self.common_lstm(x, self.hidden)
-        out2, hidden = self.specific_lstm_layers[domain](x, self.hidden)
+        out1 = x
+        out2 = x
+        for i in range(self.n_layers):
+            out1, hidden = self.common_lstm_layers[i](out1, self.hidden)
+            out2, hidden = self.specific_lstm_layers[i][domain](out2, self.hidden)
+
         out = torch.cat(
             (out1, out2), dim=2
         )
-        out = self.linear_layers[domain](out)
+        out = self.l1_layer[domain](out)
         return out
 
 class ClassProbabilityShift(nn.Module):

@@ -18,7 +18,7 @@ def tuning(trains, vals, wv, args, trial):
     # dropout_rate
     dropout_ratio = trial.suggest_categorical('dropout_rate', [0, 0.1, 0.2, 0.3])
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=dropout_ratio, n_layers=n_layers)
+    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=dropout_ratio, n_layers=n_layers, model='Base')
 
     lr = trial.suggest_categorical('learning_rate', [1e-5, 1e-4, 1e-3, 1e-2])
     batch_size=trial.suggest_categorical('batch_size', [16, 32, 64])
