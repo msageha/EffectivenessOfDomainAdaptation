@@ -228,8 +228,8 @@ def test(tests_dict, bilstm, batch_size, args):
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
         results['All']['correct'] += results[domain]['correct']
-        for i in range(results[domain]['confusion_matrix'].shape[0]):
-            for j in range(results[domain]['confusion_matrix'].shape[1]):
+        for i in range(results[domain]['confusion_matrix'].df.shape[0]):
+            for j in range(results[domain]['confusion_matrix'].df.shape[1]):
                 results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
         results[domain]['acc(one_label)'] = results[domain]['correct']/results[domain]['samples']
