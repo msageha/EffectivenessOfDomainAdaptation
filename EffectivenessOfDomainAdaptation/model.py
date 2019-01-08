@@ -100,7 +100,7 @@ class FeatureAugmentation(nn.Module):
         for i in range(self.n_layers):
             lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
             common_lstm_layers.append(lstm)
-        self.common_lstm_layers = nn.ModuleList(lstm_layers)
+        self.common_lstm_layers = nn.ModuleList(common_lstm_layers)
 
         specific_lstm_layers = []
         for i in range(self.n_layers):
