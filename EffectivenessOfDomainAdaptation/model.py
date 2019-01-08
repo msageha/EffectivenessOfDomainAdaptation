@@ -108,7 +108,7 @@ class FeatureAugmentation(nn.Module):
             for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
                 lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
                 specific_lstm[domain] = lstm
-            self.specific_lstm_layers.append(nn.ModuleDict(specific_lstm_layers))
+            self.specific_lstm_layers.append(nn.ModuleDict(specific_lstm))
 
         l1_layer = {}
         for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
