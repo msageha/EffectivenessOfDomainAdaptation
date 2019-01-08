@@ -13,8 +13,8 @@ from model import BiLSTM, FeatureAugmentation, ClassProbabilityShift
 
 import sys
 sys.path.append('../utils')
-from loader import WordVector, load_datasets, split, split_each_domain
-from store import dump_dict
+from loader import DatasetLoading, load_model
+from store import dump_dict, save_model
 from subfunc import return_file_domain, initialize_confusion_matrix, calculate_confusion_matrix, calculate_f1, predicted_log
 
 # init model
@@ -259,17 +259,16 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     emb_type = 'Word2VecWiki'
-    wv = WordVector(emb_type, args.emb_path)
-    is_intra = True
-    datasets = load_datasets(wv, is_intra, args.media)
-    trains_dict, vals_dict, tests_dict = split_each_domain(datasets)
-    import ipdb; ipdb.set_trace();
 
+    dl = DatasetLoading(emb_type, args.emb_path, media=args.media)
+    dl.making_intra_df()
+
+    trains_dict, vals_dict, tests_dict = dl.split_each_domain('intra')
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in args.media])
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
     args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(wv.index2word), v_vec= wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model)
+    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model)
     dump_dict(args.__dict__, args.dump_dir, 'args')
     pprint(args.__dict__)
 
