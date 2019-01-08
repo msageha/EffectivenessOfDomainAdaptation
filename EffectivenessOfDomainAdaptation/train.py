@@ -239,7 +239,7 @@ def test(tests_dict, bilstm, batch_size, args):
     results['All']['F1'] = results['All']['confusion_matrix'].calculate_f1()
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
-        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
+        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].df.to_dict()
         tmp_dict1 = {}
         for key1 in results[domain]['confusion_matrix']:
             tmp_dict2 = {}
@@ -247,7 +247,7 @@ def test(tests_dict, bilstm, batch_size, args):
                 tmp_dict2['_'.join(key2)] = results[domain]['confusion_matrix'][key1][key2]
             tmp_dict1['_'.join(key1)] = tmp_dict2
         results[domain]['confusion_matrix'] = tmp_dict1
-        results[domain]['F1'] = results[domain]['F1'].to_dict()
+        results[domain]['F1'] = results[domain]['F1'].df.to_dict()
     return results, logs
 
 def init_statistics_of_each_case_type(trains_y, case_type):
