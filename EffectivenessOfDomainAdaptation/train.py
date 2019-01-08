@@ -15,7 +15,8 @@ import sys
 sys.path.append('../utils')
 from loader import DatasetLoading, load_model
 from store import dump_dict, save_model
-from subfunc import return_file_domain, initialize_confusion_matrix, calculate_confusion_matrix, calculate_f1, predicted_log
+from subfunc import return_file_domain, predicted_log
+from calc_result import ConfusionMatrix
 
 # init model
 def weights_init(m):
@@ -173,8 +174,9 @@ def test(tests_dict, bilstm, batch_size, args):
     results = defaultdict(lambda: defaultdict(float))
     logs = defaultdict(list)
     for domain in args.media:
-        results[domain]['confusion_matrix'] = initialize_confusion_matrix()
-    results['All']['confusion_matrix'] = initialize_confusion_matrix()
+        results[domain]['confusion_matrix'] = ConfusionMatrix()
+    results['All']['confusion_matrix'] = ConfusionMatrix()
+
     bilstm.eval()
     criterion = nn.CrossEntropyLoss()
     batches = []
@@ -217,7 +219,7 @@ def test(tests_dict, bilstm, batch_size, args):
             results[domain]['samples'] += 1
             loss = criterion(out[j].reshape(1, 2, -1), y[j].reshape(1, -1))
             results[domain]['loss'] += loss.item()
-            correct = calculate_confusion_matrix(results[domain]['confusion_matrix'], batch[j], pred[j].item(), args.case)
+            correct = results[domain]['confusion_matrix'].calculate(batch[j], pred[j].item(), args.case)
             corrects.append(correct)
         for domain, log in predicted_log(batch, pred, args.case, corrects):
             logs[domain].append(log)
@@ -231,10 +233,10 @@ def test(tests_dict, bilstm, batch_size, args):
                 results['All']['confusion_matrix'].iat[i, j] += results[domain]['confusion_matrix'].iat[i, j]
         results[domain]['loss'] /= results[domain]['samples']
         results[domain]['acc(one_label)'] = results[domain]['correct']/results[domain]['samples']
-        results[domain]['F1'] = calculate_f1(results[domain]['confusion_matrix'])
+        results[domain]['F1'] = results[domain]['confusion_matrix'].calculate_f1()
     results['All']['loss'] /= results['All']['samples']
     results['All']['acc(one_label)'] = results['All']['correct']/results['All']['samples']
-    results['All']['F1'] = calculate_f1(results['All']['confusion_matrix'])
+    results['All']['F1'] = results['All']['confusion_matrix'].calculate_f1()
     for domain in sorted(results.keys()):
         print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
         results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].to_dict()
