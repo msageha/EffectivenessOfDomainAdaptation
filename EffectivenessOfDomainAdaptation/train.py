@@ -42,7 +42,7 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, sta
         is_gpu = False
     if model=='Base' or model=='FT':
         bilstm = BiLSTM(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
-    elif model='OH':
+    elif model == 'OH':
         bilstm = OneHot(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'FA':
         bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
