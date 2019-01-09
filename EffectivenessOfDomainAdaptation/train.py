@@ -33,19 +33,21 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
-    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'FT', 'FA', 'CPS', 'VOT', 'MIX'])
+    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OH', 'FT', 'FA', 'CPS', 'VOT', 'MIX'])
     return parser
 
-def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model):
+def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, statistics_of_each_case_type):
     is_gpu = True
     if gpu == -1:
         is_gpu = False
     if model=='Base' or model=='FT':
         bilstm = BiLSTM(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
+    elif model='OH':
+        bilstm = OneHot(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'FA':
         bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'CPS':
-        bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=None, gpu=is_gpu)
+        bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=statistics_of_each_case_type, gpu=is_gpu)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -137,6 +139,9 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
             if args.model == 'FA' or args.model == 'MIX':
                 domain = return_file_domain(files[0])
                 out = bilstm.forward(x, domain)
+            elif args.model == 'OH':
+                domains = [return_file_domain(file) for file in files]
+                out = bilstm.forward(x, domains)
             else:
                 out = bilstm.forward(x)
             out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
@@ -250,12 +255,25 @@ def test(tests_dict, bilstm, batch_size, args):
         results[domain]['F1'] = results[domain]['F1'].to_dict()
     return results, logs
 
-def init_statistics_of_each_case_type(trains_y, case_type):
+def init_statistics_of_each_case_type(trains_dict, case, media):\
+    #intraのみ！interは外界三人称に統合．
+    statistics_of_each_case_type = {}
+    for domain in media:
+        case_type_counts = defaultdict(int)
+        trains_y = trains_dict[domain][:, 1]
+        for y in trains_y:
+            case_types = y[f'{case}_type']
+            case_type = case_types.split(',')[0]
+            case_type_counts[case_type] += 1
+        case_type_counts['exoX'] += case_type_counts['inter(zero)']
+        del case_type_counts['inter(zero)']
+        statistics_of_each_case_type[domain] = case_type_counts
     case_type_counts = defaultdict(int)
-    for case_types in trains_y[f'{case}_type']:
-        case_type = case_types.split(',')[0]
-        case_type_counts[case_type] += 1
-    return case_type_counts
+    for case_type in ['intra(dep)', 'intra(zero)', 'none', 'exo1', 'exo2', 'exoX']:
+        case_type_sum = sum([statistics_of_each_case_type[domain][case_type] for domain in media])
+        case_type_counts[case_type] = case_type_sum
+    statistics_of_each_case_type['All'] = case_type_counts
+    return statistics_of_each_case_type
 
 def main():
     parser = create_arg_parser()
@@ -270,12 +288,14 @@ def main():
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
     args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
 
-    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model)
+    if args.model == 'CPS':
+        statistics_of_each_case_type = init_statistics_of_each_case_type(trains_dict, args.case, args.media)
+    else:
+        statistics_of_each_case_type = None
+    bilstm = initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model, statistics_of_each_case_type=statistics_of_each_case_type)
     dump_dict(args.__dict__, args.dump_dir, 'args')
     pprint(args.__dict__)
 
-    import ipdb; ipdb.set_trace();
-    # statistics_of_each_case_type = {trains_dict[domain] for domain in args.media}
     train(trains_dict, vals_dict, bilstm, args, lr=0.001, batch_size=64)
 
 if __name__ == '__main__':
