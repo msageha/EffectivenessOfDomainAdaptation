@@ -155,7 +155,7 @@ class FeatureAugmentation(nn.Module):
         return out
 
 class ClassProbabilityShift(nn.Module):
-    def __init__(self, v_size, v_vec, dropout_ratio, statistics_of_each_case_type, emb_dim=200, n_labels=2, gpu=True, batch_first=True):
+    def __init__(self, v_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type, emb_dim=200, n_labels=2, gpu=True, batch_first=True):
         super(ClassProbabilityShift, self).__init__()
         self.gpu = gpu
         self.h_dim = (emb_dim+34)//2
@@ -163,6 +163,7 @@ class ClassProbabilityShift(nn.Module):
         v_vec = torch.tensor(v_vec)
         self.word_embed.weight.data.copy_(v_vec)
         self.dropout_ratio = dropout_ratio
+        self.n_layers = n_layers
         self.statistics_of_each_case_type = statistics_of_each_case_type
 
         feature_embed_layers = []

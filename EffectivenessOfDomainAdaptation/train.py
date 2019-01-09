@@ -45,7 +45,7 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model):
     elif model == 'FA':
         bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'CPS':
-        bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, statistics_of_each_case_type=None, gpu=is_gpu)
+        bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=None, gpu=is_gpu)
     if is_gpu:
         bilstm = bilstm.cuda()
 
