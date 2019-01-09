@@ -237,7 +237,8 @@ class ClassProbabilityShift(nn.Module):
         self.word_embed.weight.data.copy_(v_vec)
         self.dropout_ratio = dropout_ratio
         self.n_layers = n_layers
-        self.statistics_of_each_case_type = statistics_of_each_case_type
+
+        self.init_statistics(statistics_of_each_case_type)
 
         feature_embed_layers = []
         feature_embed_size = {
@@ -263,21 +264,36 @@ class ClassProbabilityShift(nn.Module):
         self.lstm_layers = nn.ModuleList(lstm_layers)
         self.l1 = nn.Linear(self.h_dim*2, n_labels)
 
-    # def init_statistics(self, statistics_of_each_case_type):
-    #     max_length = 500
+    def init_statistics(self, statistics_of_each_case_type):
+        max_length = 500
+        media = statistics_of_each_case_type.keys()
+        statistics_positive = {}
+        for domain in media:
+            intra = statistics_of_each_case_type[domain]['intra(dep)'] + statistics_of_each_case_type[domain]['intra(zero)']
+            tmp = np.identity(max_length, dtype=np.float32)*intra
+            for i, case_type in enumerate(['none', 'exoX', 'exo2', 'exo1']):
+                tmp[i][i] = statistics_of_each_case_type[domain][case_type]
+            statistics_positive[domain] = tmp
+        all_I = np.matrix(statistics_positive['All']).I
 
-    #     statistics_positive = {}
-    #     for domain in statistics_of_each_case_type.keys():
-    #         intra = statistics_of_each_case_type[domain]['intra(dep)'] + statistics_of_each_case_type[domain]['intra(zero)']
-    #         tmp = np.identity(max_length)*intra
-    #         for i, case_type in enumerate(['none', 'exoX', 'exo2', 'exo1']):
-    #             tmp[i][i] = statistics_of_each_case_type[domain][case_type]
-    #         statistics_positive[domain] = tmp
+        statistics_negative = {}
+        for domain in media:
+            statistics_positive[domain] *= all_I
+            tmp = np.identity(max_length, dtype=np.float32) - statistics_positive[domain]
+            statistics_negative[domain] = tmp
+        
+        for domain in media:
+            statistics_positive[domain] = torch.tensor(statistics_positive[domain])
+            statistics_negative[domain] = torch.tensor(statistics_negative[domain])
+            if self.gpu:
+                statistics_positive[domain] = statistics_positive[domain].cuda()
+                statistics_negative[domain] = statistics_negative[domain].cuda()
 
+        self.statistics_positive = statistics_positive
+        self.statistics_negative = statistics_negative
 
-    #     statistics_positive = 
-    #     statistics_negative = 
-    #     self.CPS_layer = 
+    def CPS_layer(self, x):
+        pass
 
 
     def init_hidden(self, b_size):
