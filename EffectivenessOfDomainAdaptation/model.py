@@ -294,7 +294,7 @@ class ClassProbabilityShift(nn.Module):
         self.statistics_negative = statistics_negative
 
     def CPS_layer(self, x):
-        pass
+        self.statistics_positive
 
 
     def init_hidden(self, b_size):
@@ -305,7 +305,7 @@ class ClassProbabilityShift(nn.Module):
             c0 = c0.cuda()
         return (h0, c0)
 
-    def forward(self, x):
+    def forward(self, x, domains):
         self.hidden = self.init_hidden(x[2].size(0))
         word_emb = self.word_embed(x[0])
         feature_emb_list = []
@@ -325,4 +325,5 @@ class ClassProbabilityShift(nn.Module):
 
         out = self.l1(x)
         import ipdb; ipdb.set_trace();
+        # out = self.CPS_layer(out, domains)
         return out
