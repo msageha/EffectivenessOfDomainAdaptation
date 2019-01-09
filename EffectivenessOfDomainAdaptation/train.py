@@ -10,6 +10,7 @@ import torch.nn as nn
 from tqdm import tqdm
 
 from model import BiLSTM, OneHot, FeatureAugmentation, ClassProbabilityShift
+import test
 
 import sys
 sys.path.append('../utils')
@@ -18,11 +19,13 @@ from store import dump_dict, save_model
 from subfunc import return_file_domain, predicted_log
 from calc_result import ConfusionMatrix
 
+
 # init model
 def weights_init(m):
     classname = m.__class__.__name__
     if hasattr(m, 'weight') and (classname.find('Embedding') == -1):
         nn.init.xavier_uniform_(m.weight.data, gain=nn.init.calculate_gain('relu'))
+
 
 def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
@@ -33,8 +36,9 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
-    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OH', 'FT', 'FA', 'CPS', 'VOT', 'MIX'])
+    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OH', 'FA', 'CPS', 'VOT', 'MIX'])
     return parser
+
 
 def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, statistics_of_each_case_type):
     is_gpu = True
@@ -57,6 +61,7 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, sta
 
     return bilstm
 
+
 def translate_df_tensor(df_list, keys, gpu_id):
     vec = [np.array(i[keys], dtype=np.int) for i in df_list]
     vec = np.array(vec)
@@ -66,12 +71,14 @@ def translate_df_tensor(df_list, keys, gpu_id):
         vec = vec.cuda()
     return vec
 
+
 def translate_df_y(df_list, keys, gpu_id):
     vec = [int(i[keys].split(',')[0]) for i in df_list]
     vec = torch.tensor(vec)
     if gpu_id >= 0:
         vec = vec.cuda()
     return vec
+
 
 def translate_batch(batch, gpu, case):
     x = batch[:, 0]
@@ -101,7 +108,8 @@ def translate_batch(batch, gpu, case):
 
     return x, y, files
 
-def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
+
+def run(trains_dict, vals_dict, bilstm, args, lr, batch_size):
     print('--- start training ---')
     epochs = args.max_epoch+1
     results = {}
@@ -154,7 +162,7 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
             running_loss += loss.item()
 
         print(f'[epoch: {epoch}]\tloss: {running_loss/(running_samples/batch_size)}\tacc(one_label): {running_correct/running_samples}')
-        _results, _ = test(vals_dict, bilstm, batch_size, args)
+        _results, _ = test.run(vals_dict, bilstm, batch_size, args)
         results[epoch] = _results
         if args.save:
             save_model(epoch, bilstm, args.dump_dir, args.gpu)
@@ -172,91 +180,7 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
-    return 1 - best_epochs['All']["F1-score(total)"]
 
-
-def test(tests_dict, bilstm, batch_size, args):
-    results = defaultdict(lambda: defaultdict(float))
-    logs = defaultdict(list)
-    for domain in args.media:
-        results[domain]['confusion_matrix'] = ConfusionMatrix()
-    results['All']['confusion_matrix'] = ConfusionMatrix()
-
-    bilstm.eval()
-    criterion = nn.CrossEntropyLoss()
-    batches = []
-    if args.model =='FA' or args.model == 'MIX':
-        for domain in args.media:
-            N = len(tests_dict[domain])
-            perm = np.random.permutation(N)
-            for i in range(0, N, batch_size):
-                batch = tests_dict[domain][perm[i:i+batch_size]]
-                batches.append(batch)
-    else:
-        tests = np.vstack(tests_dict.values())
-        N = len(tests)
-        perm = np.random.permutation(N)
-        for i in range(0, N, batch_size):
-            batch = tests[perm[i:i+batch_size]]
-            batches.append(batch)
-    random.shuffle(batches)
-    for batch in tqdm(batches):
-        batchsize = len(batch)
-
-        #0 paddingするために，長さで降順にソートする．
-        argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
-        batch = batch[argsort_index]
-        x, y, files = translate_batch(batch, args.gpu, args.case)
-
-        if args.model == 'FA' or args.model == 'MIX':
-            domain = return_file_domain(files[0])
-            out = bilstm.forward(x, domain)
-        elif args.model == 'OH' or args.model == 'CPS':
-            domains = [return_file_domain(file) for file in files]
-            out = bilstm.forward(x, domains)
-        else:
-            out = bilstm.forward(x)
-        out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
-
-        pred = out.argmax(dim=2)[:, 1]
-        corrects = []
-        for j, file in enumerate(files):
-            correct = pred[j].eq(y[j].argmax()).item()
-            domain = return_file_domain(file)
-            results[domain]['correct'] += correct
-            results[domain]['samples'] += 1
-            loss = criterion(out[j].reshape(1, 2, -1), y[j].reshape(1, -1))
-            results[domain]['loss'] += loss.item()
-            correct = results[domain]['confusion_matrix'].calculate(batch[j], pred[j].item(), args.case)
-            corrects.append(correct)
-        for domain, log in predicted_log(batch, pred, args.case, corrects):
-            logs[domain].append(log)
-
-    for domain in args.media:
-        results['All']['loss'] += results[domain]['loss']
-        results['All']['samples'] += results[domain]['samples']
-        results['All']['correct'] += results[domain]['correct']
-        for i in range(results[domain]['confusion_matrix'].df.shape[0]):
-            for j in range(results[domain]['confusion_matrix'].df.shape[1]):
-                results['All']['confusion_matrix'].df.iat[i, j] += results[domain]['confusion_matrix'].df.iat[i, j]
-        results[domain]['loss'] /= results[domain]['samples']
-        results[domain]['acc(one_label)'] = results[domain]['correct']/results[domain]['samples']
-        results[domain]['F1'] = results[domain]['confusion_matrix'].calculate_f1()
-    results['All']['loss'] /= results['All']['samples']
-    results['All']['acc(one_label)'] = results['All']['correct']/results['All']['samples']
-    results['All']['F1'] = results['All']['confusion_matrix'].calculate_f1()
-    for domain in sorted(results.keys()):
-        print(f'[domain: {domain}]\ttest loss: {results[domain]["loss"]}\tF1-score: {results[domain]["F1"]["F1-score"]["total"]}\tacc(one_label): {results[domain]["acc(one_label)"]}')
-        results[domain]['confusion_matrix'] = results[domain]['confusion_matrix'].df.to_dict()
-        tmp_dict1 = {}
-        for key1 in results[domain]['confusion_matrix']:
-            tmp_dict2 = {}
-            for key2 in results[domain]['confusion_matrix'][key1]:
-                tmp_dict2['_'.join(key2)] = results[domain]['confusion_matrix'][key1][key2]
-            tmp_dict1['_'.join(key1)] = tmp_dict2
-        results[domain]['confusion_matrix'] = tmp_dict1
-        results[domain]['F1'] = results[domain]['F1'].to_dict()
-    return results, logs
 
 def init_statistics_of_each_case_type(trains_dict, case, media):\
     #intraのみ！interは外界三人称に統合．
@@ -277,6 +201,7 @@ def init_statistics_of_each_case_type(trains_dict, case, media):\
         case_type_counts[case_type] = case_type_sum
     statistics_of_each_case_type['All'] = case_type_counts
     return statistics_of_each_case_type
+
 
 def main():
     parser = create_arg_parser()
@@ -299,7 +224,7 @@ def main():
     dump_dict(args.__dict__, args.dump_dir, 'args')
     pprint(args.__dict__)
 
-    train(trains_dict, vals_dict, bilstm, args, lr=0.001, batch_size=64)
+    run(trains_dict, vals_dict, bilstm, args, lr=0.001, batch_size=64)
 
 if __name__ == '__main__':
     main()
