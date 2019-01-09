@@ -211,6 +211,9 @@ def test(tests_dict, bilstm, batch_size, args):
         if args.model == 'FA' or args.model == 'MIX':
             domain = return_file_domain(files[0])
             out = bilstm.forward(x, domain)
+        elif args.model == 'OH':
+            domains = [return_file_domain(file) for file in files]
+            out = bilstm.forward(x, domains)
         else:
             out = bilstm.forward(x)
         out = torch.cat((out[:, :, 0].reshape(batchsize, 1, -1), out[:, :, 1].reshape(batchsize, 1, -1)), dim=1)
