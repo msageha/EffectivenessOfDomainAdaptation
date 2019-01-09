@@ -295,13 +295,14 @@ class ClassProbabilityShift(nn.Module):
 
     def CPS_layer(self, x, domains):
         sentence_length = x.size(1)
+        out = x.clone()
         for i, domain in enumerate(domains):
-            x[i] = torch.stack(
+            out[i] = torch.stack(
                 [x[i, :, 0] * self.statistics_positive[domain][:sentence_length, :sentence_length].diag(),
                 x[i, :, 1] * self.statistics_negative[domain][:sentence_length, :sentence_length].diag()
                 ], dim=1
             )
-        return x
+        return out
 
     def init_hidden(self, b_size):
         h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
