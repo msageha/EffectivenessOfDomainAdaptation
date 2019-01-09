@@ -282,7 +282,7 @@ class ClassProbabilityShift(nn.Module):
             statistics_positive[domain] *= all_I
             tmp = np.identity(max_length, dtype=np.float32) - statistics_positive[domain]
             statistics_negative[domain] = tmp
-        
+
         for domain in media:
             statistics_positive[domain] = torch.tensor(statistics_positive[domain])
             statistics_negative[domain] = torch.tensor(statistics_negative[domain])
@@ -293,9 +293,15 @@ class ClassProbabilityShift(nn.Module):
         self.statistics_positive = statistics_positive
         self.statistics_negative = statistics_negative
 
-    def CPS_layer(self, x):
-        self.statistics_positive
-
+    def CPS_layer(self, x, domains):
+        sentence_length = x.size(1)
+        for i, domain in enumerate(domains):
+            x[i] = torch.stack(
+                [x[i, :, 0] * self.statistics_positive[domain][:sentence_length, :sentence_length].diag(),
+                x[i, :, 1] * self.statistics_negative[domain][:sentence_length, :sentence_length].diag()
+                ], dim=1
+            )
+        return x
 
     def init_hidden(self, b_size):
         h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
@@ -324,6 +330,5 @@ class ClassProbabilityShift(nn.Module):
             x, hidden = self.lstm_layers[i](x, self.hidden)
 
         out = self.l1(x)
-        import ipdb; ipdb.set_trace();
-        # out = self.CPS_layer(out, domains)
+        out = self.CPS_layer(out, domains)
         return out
