@@ -73,7 +73,7 @@ class OneHot(nn.Module):
     def __init__(self, v_size, v_vec, dropout_ratio, n_layers, emb_dim=200, n_labels=2, gpu=True, batch_first=True):
         super(OneHot, self).__init__()
         self.gpu = gpu
-        self.h_dim = (emb_dim+34)//2
+        self.h_dim = (emb_dim+40)//2
         self.word_embed = nn.Embedding(v_size, emb_dim, padding_idx=0)
         v_vec = torch.tensor(v_vec)
         self.word_embed.weight.data.copy_(v_vec)
