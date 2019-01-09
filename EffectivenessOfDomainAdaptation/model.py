@@ -95,6 +95,7 @@ class FeatureAugmentation(nn.Module):
             feature_embed.weight.data[0] = torch.zeros(5)
             feature_embed_layers.append(feature_embed)
         self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
+        self.drop_target = nn.Dropout(p=dropout_ratio)
 
         common_lstm_layers = []
         for i in range(self.n_layers):
@@ -139,6 +140,8 @@ class FeatureAugmentation(nn.Module):
             dim=2
         )
 
+        x = self.drop_target(x)
+
         out1 = x
         out2 = x
         for i in range(self.n_layers):
@@ -160,6 +163,7 @@ class ClassProbabilityShift(nn.Module):
         v_vec = torch.tensor(v_vec)
         self.word_embed.weight.data.copy_(v_vec)
         self.dropout_ratio = dropout_ratio
+        self.statistics_of_each_case_type = statistics_of_each_case_type
 
         feature_embed_layers = []
         feature_embed_size = {
@@ -178,7 +182,11 @@ class ClassProbabilityShift(nn.Module):
         self.feature_embed_layers = nn.ModuleList(feature_embed_layers)
         self.drop_target = nn.Dropout(p=dropout_ratio)
 
-        self.lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+        lstm_layers = []
+        for i in range(self.n_layers):
+            lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+            lstm_layers.append(lstm)
+        self.lstm_layers = nn.ModuleList(lstm_layers)
         self.l1 = nn.Linear(self.h_dim*2, n_labels)
 
     def init_hidden(self, b_size):
@@ -204,8 +212,9 @@ class ClassProbabilityShift(nn.Module):
         )
 
         x = self.drop_target(x)
-        out, hidden = self.lstm(x, self.hidden)
-        # out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
+        for i in range(self.n_layers):
+            x, hidden = self.lstm_layers[i](x, self.hidden)
 
-        out = self.l1(out)
+        out = self.l1(x)
+        import ipdb; ipdb.set_trace();
         return out

@@ -274,6 +274,8 @@ def main():
     dump_dict(args.__dict__, args.dump_dir, 'args')
     pprint(args.__dict__)
 
+    import ipdb; ipdb.set_trace();
+    # statistics_of_each_case_type = {trains_dict[domain] for domain in args.media}
     train(trains_dict, vals_dict, bilstm, args, lr=0.001, batch_size=64)
 
 if __name__ == '__main__':
