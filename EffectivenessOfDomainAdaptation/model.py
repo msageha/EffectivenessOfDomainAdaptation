@@ -258,14 +258,14 @@ class ClassProbabilityShift(nn.Module):
         self.lstm_layers = nn.ModuleList(lstm_layers)
         self.l1 = nn.Linear(self.h_dim*2, n_labels)
 
-    def init_statistics(self, statistics_of_each_case_type):
-        max_length = 500
+    # def init_statistics(self, statistics_of_each_case_type):
+    #     max_length = 500
 
-        torch.identity = 
+    #     torch.identity = 
 
-        statistics_positive = 
-        statistics_negative = 
-        self.CPS_layer = 
+    #     statistics_positive = 
+    #     statistics_negative = 
+    #     self.CPS_layer = 
 
 
     def init_hidden(self, b_size):
