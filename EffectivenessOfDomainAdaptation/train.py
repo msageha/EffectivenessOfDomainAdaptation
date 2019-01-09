@@ -117,7 +117,7 @@ def train(trains_dict, vals_dict, bilstm, args, lr, batch_size):
                     batch = trains_dict[domain][perm[i:i+batch_size]]
                     batches.append(batch)
         else:
-            trains = np.hstack(trains_dict.values())
+            trains = np.vstack(trains_dict.values())
             N = len(trains)
             perm = np.random.permutation(N)
             for i in range(0, N, batch_size):
@@ -193,7 +193,7 @@ def test(tests_dict, bilstm, batch_size, args):
                 batch = tests_dict[domain][perm[i:i+batch_size]]
                 batches.append(batch)
     else:
-        tests = np.hstack(tests_dict.values())
+        tests = np.vstack(tests_dict.values())
         N = len(tests)
         perm = np.random.permutation(N)
         for i in range(0, N, batch_size):
