@@ -100,7 +100,7 @@ class OneHot(nn.Module):
 
         lstm_layers = []
         for i in range(self.n_layers):
-            lstm = nn.LSTM(input_size=emb_dim+34, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
+            lstm = nn.LSTM(input_size=emb_dim+40, hidden_size=self.h_dim, batch_first=batch_first, bidirectional=True)
             lstm_layers.append(lstm)
         self.lstm_layers = nn.ModuleList(lstm_layers)
         self.l1 = nn.Linear(self.h_dim*2, n_labels)
@@ -121,11 +121,16 @@ class OneHot(nn.Module):
             feature_emb = self.feature_embed_layers[i](_x)
             feature_emb_list.append(feature_emb)
         x_feature = torch.tensor(x[2], dtype=torch.float, device=x[2].device)
-        import ipdb; ipdb.set_trace();
-        x_onehot = torch.zeros()
+
+        x_onehot = torch.zeros(x[0].size(0), x[0].size(1), 6)
+        for i, domain in enumerate(domains):
+            domain_index = self.domain_label_encoder[domain]
+            x_onehot[i, :, domain_index] = 1
+        if self.gpu:
+            x_onehot = x_onehot.cuda()
 
         x = torch.cat(
-            (word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature),
+            (word_emb, feature_emb_list[0], feature_emb_list[1], feature_emb_list[2], feature_emb_list[3], feature_emb_list[4], feature_emb_list[5], x_feature, x_onehot),
             dim=2
         )
 
@@ -261,7 +266,14 @@ class ClassProbabilityShift(nn.Module):
     # def init_statistics(self, statistics_of_each_case_type):
     #     max_length = 500
 
-    #     torch.identity = 
+    #     statistics_positive = {}
+    #     for domain in statistics_of_each_case_type.keys():
+    #         intra = statistics_of_each_case_type[domain]['intra(dep)'] + statistics_of_each_case_type[domain]['intra(zero)']
+    #         tmp = np.identity(max_length)*intra
+    #         for i, case_type in enumerate(['none', 'exoX', 'exo2', 'exo1']):
+    #             tmp[i][i] = statistics_of_each_case_type[domain][case_type]
+    #         statistics_positive[domain] = tmp
+
 
     #     statistics_positive = 
     #     statistics_negative = 
