@@ -8,6 +8,7 @@ import random
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+import json
 
 import train
 
@@ -50,7 +51,7 @@ def run(tests_dict, bilstm, batch_size, args):
         #0 paddingするために，長さで降順にソートする．
         argsort_index = np.array([i.shape[0] for i in batch[:, 0]]).argsort()[::-1]
         batch = batch[argsort_index]
-        x, y, files = translate_batch(batch, args.gpu, args.case)
+        x, y, files = train.translate_batch(batch, args.gpu, args.case)
 
         if args.model == 'FA' or args.model == 'MIX':
             domain = return_file_domain(files[0])
