@@ -87,9 +87,25 @@ class ConfusionMatrix():
         for case_type in case_types:
             all_tp += self.df['actual', case_type]['predicted', case_type]
             all_tp_fp += sum(self.df.loc['predicted', case_type])
+            if case_type == 'intra(zero)' or case_type == 'intra(dep)' or case_type == 'inter(zero)':
+                all_tp_fp += sum(self.df.loc['predicted', f'{case_type}_false'])
             all_tp_fn += sum(self.df['actual', case_type])
         f1_df.loc['total'] = 0
         f1_df['precision']['total'] = all_tp / (all_tp_fp)
         f1_df['recall']['total'] = all_tp / (all_tp_fn)
         f1_df['F1-score']['total'] = (2 * f1_df['precision']['total'] * f1_df['recall']['total']) / (f1_df['precision']['total'] + f1_df['recall']['total'])
+
+        all_tp = 0
+        all_tp_fp = 0
+        all_tp_fn = 0
+        for case_type in ['intra(dep)', 'intra(zero)',]:
+            all_tp += self.df['actual', case_type]['predicted', case_type]
+            all_tp_fp += sum(self.df.loc['predicted', case_type])
+            if case_type == 'intra(zero)' or case_type == 'intra(dep)':
+                all_tp_fp += sum(self.df.loc['predicted', f'{case_type}_false'])
+            all_tp_fn += sum(self.df['actual', case_type])
+        f1_df.loc['total(intra)'] = 0
+        f1_df['precision']['total(intra)'] = all_tp / (all_tp_fp)
+        f1_df['recall']['total(intra)'] = all_tp / (all_tp_fn)
+        f1_df['F1-score']['total(intra)'] = (2 * f1_df['precision']['total(intra)'] * f1_df['recall']['total(intra)']) / (f1_df['precision']['total(intra)'] + f1_df['recall']['total(intra)'])
         return f1_df

@@ -392,6 +392,7 @@ class DatasetLoading():
         self.pickle_path = pickle_path
         self.emb_type = emb_type
         self.emb_path = emb_path
+        self.word_count = defaultdict(int)
         datasets = defaultdict(list)
         with open(pickle_path, 'rb') as f:
             print(f'--- start loading datasets pickle from {pickle_path} ---')
@@ -508,6 +509,7 @@ class DatasetLoading():
                 row['単語ID'] = self.wv.word2index[row['単語']]
             else:
                 row['単語ID'] = self.wv.word2index['<unk>']
+            self.word_count[row['単語ID']] += 1
 
             # 形態素素性
             row['形態素0'] = self.fe.feature0[row['形態素0']]
@@ -599,7 +601,7 @@ def load_config(args):
     with open(f'{args.load_dir}/args.json') as f:
         params = json.load(f)
     for key in params:
-        if key == 'gpu':
+        if key in args.__dict__:
             continue
         args.__dict__[key] = params[key]
 

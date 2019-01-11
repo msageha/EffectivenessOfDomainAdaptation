@@ -7,39 +7,54 @@ from collections import defaultdict
 import pickle
 import random
 
+from utils.regular_expression import is_num, extraction_num
+
+
 def get_id_tag(text):
     m = re.search(r'id="([0-9]+)"', text)
     if m:
         return m.group(1)
     return ''
+
+
 def get_eq_tag(text):
     m = re.search(r'eq="([0-9]+)"', text)
     if m:
         return m.group(1)
     return ''
+
+
 def get_type_tag(text):
     m = re.search(r'type="(.+?)"', text)
     if m:
         return m.group(1)
     return ''
+
+
 def get_ga_tag(text):
     ids = []
     for m in re.finditer(r'ga="(.+?)"', text):
         if m.group(1) != 'ana_cla':
             ids.append(m.group(1))
     return ','.join(ids)
+
+
 def get_o_tag(text):
     ids = []
     for m in re.finditer(r'o="(.+?)"', text):
         if m.group(1) != 'ana_cla':
             ids.append(m.group(1))
     return ','.join(ids)
+
+
 def get_ni_tag(text):
     ids = []
     for m in re.finditer(r' ni="(.+?)"', text):
         if m.group(1) != 'ana_cla':
             ids.append(m.group(1))
     return ','.join(ids)
+
+
 # def get_ga_dep_tag(text):
 #     m = re.search(r'ga_dep="(.+?)"', text)
 #     if m: return m.group(1)
@@ -53,16 +68,6 @@ def get_ni_tag(text):
 #     if m: return m.group(1)
 #     return None
 
-#正規表現
-def is_num(text):
-    m = re.match('\A[0-9]+\Z', text)
-    if m:
-        return True
-    else:
-        return False
-def extraction_num(text):
-    m = re.search(r'([-0-9]+)', text)
-    return int(m.group(1))
 
 def load_document(path):
     document = ''
@@ -72,6 +77,7 @@ def load_document(path):
                 continue
             document += line
     return document
+
 
 def line_to_df(line):
     word, pos, tags = line.split('\t')
@@ -88,13 +94,14 @@ def line_to_df(line):
     df = pd.DataFrame(
         [
             [word, pos_list[0], pos_list[1], pos_list[2], pos_list[3], pos_list[4], pos_list[5],
-            id_tag, eq_tag, ga_tag, o_tag, ni_tag, verb_type]
+             id_tag, eq_tag, ga_tag, o_tag, ni_tag, verb_type]
         ],
         columns=['単語', '形態素0', '形態素1', '形態素2', '形態素3', '形態素4', '形態素5',
             'id', 'eq','ga', 'o', 'ni', 'verb_type'
         ]
     )
     return df
+
 
 def decision_case_type(df, case_id, verb_index):
     if is_num(case_id):
@@ -131,6 +138,7 @@ def decision_case_type(df, case_id, verb_index):
     else:
         print('Error!!!')
 
+
 def search_verbs(df):
     for index, row in df.iterrows():
         if row['verb_type'] == 'pred' or row['verb_type'] == 'noun':
@@ -157,6 +165,7 @@ def search_verbs(df):
                 case_types = [case_types[i] for i in order_arg_index]
                 df[f'{case}'][index] = ','.join(case_ids)
                 df[f'{case}_type'][index] = ','.join(case_types)
+
 
 def document_to_df(document):
     df = pd.DataFrame(
@@ -207,6 +216,7 @@ def document_to_df(document):
     search_verbs(df)
     return df
 
+
 def main(path, domains):
     datasets = {}
     for domain in domains:
@@ -217,6 +227,7 @@ def main(path, domains):
             datasets[file] = df
     with open(f'./datasets.pickle', mode='wb') as f:
         pickle.dump(datasets, f)
+
 
 if __name__ == '__main__':
     dataset_path = '../data/pas'
