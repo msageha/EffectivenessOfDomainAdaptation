@@ -23,7 +23,7 @@ from calc_result import ConfusionMatrix
 def run(tests_dict, bilstm, batch_size, args):
     results = defaultdict(lambda: defaultdict(float))
     logs = defaultdict(list)
-    for domain in args.media:
+    for domain in tests_dict.keys():
         results[domain]['confusion_matrix'] = ConfusionMatrix()
     results['All']['confusion_matrix'] = ConfusionMatrix()
 
@@ -31,7 +31,7 @@ def run(tests_dict, bilstm, batch_size, args):
     criterion = nn.CrossEntropyLoss()
     batches = []
     if args.model =='FA' or args.model == 'MIX':
-        for domain in args.media:
+        for domain in tests_dict.keys():
             N = len(tests_dict[domain])
             perm = np.random.permutation(N)
             for i in range(0, N, batch_size):
@@ -77,7 +77,7 @@ def run(tests_dict, bilstm, batch_size, args):
         for domain, log in predicted_log(batch, pred, args.case, corrects):
             logs[domain].append(log)
 
-    for domain in args.media:
+    for domain in tests_dict.keys():
         results['All']['loss'] += results[domain]['loss']
         results['All']['samples'] += results[domain]['samples']
         results['All']['correct'] += results[domain]['correct']
@@ -124,7 +124,7 @@ def main():
 
     emb_type = 'Word2VecWiki'
 
-    dl = DatasetLoading(emb_type, args.emb_path, media=args.media)
+    dl = DatasetLoading(emb_type, args.emb_path, exo1_word='僕', exo2_word='お前', exoX_word='これ')
     dl.making_intra_df()
 
     trains_dict, _, tests_dict = dl.split_each_domain('intra')
