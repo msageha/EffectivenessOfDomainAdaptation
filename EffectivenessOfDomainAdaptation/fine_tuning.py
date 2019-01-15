@@ -111,7 +111,8 @@ def main():
     for domain in =['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
         max_epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
-
+        
+        #lr = 0.0001にしてもいいかも
         run(trains_dict[domain], vals_dict, bilstm, args, ft_domain, lr=0.001, batch_size=64)
 
 
