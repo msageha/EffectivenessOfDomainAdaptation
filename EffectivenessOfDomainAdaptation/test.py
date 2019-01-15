@@ -129,7 +129,7 @@ def main():
 
     trains_dict, _, tests_dict = dl.split_each_domain('intra')
 
-    if args.model == 'CPS':
+    if args.model == 'CPS' or args.model == 'MIX':
         statistics_of_each_case_type = train.init_statistics_of_each_case_type(trains_dict, args.case, args.media)
     else:
         statistics_of_each_case_type = None
