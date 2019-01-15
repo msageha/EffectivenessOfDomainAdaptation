@@ -36,7 +36,7 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
-    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OH', 'FA', 'CPS', 'VOT', 'MIX'])
+    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OneH', 'FA', 'CPS', 'VOT', 'MIX'])
     return parser
 
 
@@ -46,7 +46,7 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, sta
         is_gpu = False
     if model=='Base' or model=='FT':
         bilstm = BiLSTM(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
-    elif model == 'OH':
+    elif model == 'OneH':
         bilstm = OneHot(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'FA':
         bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
@@ -147,7 +147,7 @@ def run(trains_dict, vals_dict, bilstm, args, lr, batch_size):
             if args.model == 'FA' or args.model == 'MIX':
                 domain = return_file_domain(files[0])
                 out = bilstm.forward(x, domain)
-            elif args.model == 'OH' or args.model == 'CPS':
+            elif args.model == 'OneH' or args.model == 'CPS':
                 domains = [return_file_domain(file) for file in files]
                 out = bilstm.forward(x, domains)
             else:
@@ -208,10 +208,14 @@ def main():
     args = parser.parse_args()
     emb_type = 'Word2VecWiki'
 
-    dl = DatasetLoading(emb_type, args.emb_path, media=args.media)
+    dl = DatasetLoading(emb_type, args.emb_path)
     dl.making_intra_df()
 
     trains_dict, vals_dict, tests_dict = dl.split_each_domain('intra')
+    for domain in args.media:
+        if domain not in trains_dict:
+            del trains_dict[domain]
+
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in args.media])
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
     args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])

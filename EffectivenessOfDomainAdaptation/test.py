@@ -56,7 +56,7 @@ def run(tests_dict, bilstm, batch_size, args):
         if args.model == 'FA' or args.model == 'MIX':
             domain = return_file_domain(files[0])
             out = bilstm.forward(x, domain)
-        elif args.model == 'OH' or args.model == 'CPS':
+        elif args.model == 'OneH' or args.model == 'CPS':
             domains = [return_file_domain(file) for file in files]
             out = bilstm.forward(x, domains)
         else:
