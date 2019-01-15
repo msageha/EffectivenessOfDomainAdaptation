@@ -124,7 +124,7 @@ def main():
 
     emb_type = 'Word2VecWiki'
 
-    dl = DatasetLoading(emb_type, args.emb_path, exo1_word='僕', exo2_word='お前', exoX_word='これ')
+    dl = DatasetLoading(emb_type, args.emb_path, exo1_word='僕', exo2_word='おまえ', exoX_word='これ')
     dl.making_intra_df()
 
     trains_dict, _, tests_dict = dl.split_each_domain('intra')
