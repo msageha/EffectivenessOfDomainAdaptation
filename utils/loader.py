@@ -10,7 +10,7 @@ from regular_expression import is_num, extraction_num
 
 
 class WordVector():
-    def __init__(self, emb_type, path=None):
+    def __init__(self, emb_type, path=None, exo1_word='', exo2_word='', exoX_word=''):
         # padding
         self.index2word = ['padding']
         padding_vector = np.zeros((1, 200))
@@ -24,17 +24,26 @@ class WordVector():
             none_vector = np.zeros((1, 200))
             # exoX
             self.index2word.append('<exoX>')
-            exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
+            if exoX_word == '':
+                exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
+            else:
+                exoX_vector = model.wv.get_vector(exoX_word).reshape(1, 200)
             # exo2
             self.index2word.append('<exo2>')
-            exo2_vector = model.wv.get_vector('あなた').reshape(1, 200)
+            if exo2_word == '':
+                exo2_vector = model.wv.get_vector('あなた').reshape(1, 200)
+            else:
+                exo2_vector = model.wv.get_vector(exo2_word).reshape(1, 200)
             # exo1
             self.index2word.append('<exo1>')
-            exo1_vector = model.wv.get_vector('私').reshape(1, 200)
+            if exo1_word == '':
+                exo1_vector = model.wv.get_vector('私').reshape(1, 200)
+            else:
+                exo1_vector = model.wv.get_vector(exo1_word).reshape(1, 200)
 
             self.index2word += model.wv.index2word.copy()
             self.vectors = np.vstack(
-                (padding_vector, unk_vector, none_vector, exo1_vector, exo2_vector, exoX_vector, model.wv.vectors.copy())
+                (padding_vector, unk_vector, none_vector, exoX_vector, exo2_vector, exo1_vector, model.wv.vectors.copy())
             )
 
         elif emb_type == 'Word2VecWiki':
@@ -47,17 +56,26 @@ class WordVector():
             none_vector = np.zeros((1, 200))
             # exoX
             self.index2word.append('<exoX>')
-            exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
+            if exoX_word == '':
+                exoX_vector = model.wv.get_vector('これ').reshape(1, 200)
+            else:
+                exoX_vector = model.wv.get_vector(exoX_word).reshape(1, 200)
             # exo2
             self.index2word.append('<exo2>')
-            exo2_vector = model.wv.get_vector('あなた').reshape(1, 200)
+            if exo2_word == '':
+                exo2_vector = model.wv.get_vector('あなた').reshape(1, 200)
+            else:
+                exo2_vector = model.wv.get_vector(exo2_word).reshape(1, 200)
             # exo1
             self.index2word.append('<exo1>')
-            exo1_vector = model.wv.get_vector('私').reshape(1, 200)
+            if exo1_word == '':
+                exo1_vector = model.wv.get_vector('私').reshape(1, 200)
+            else:
+                exo1_vector = model.wv.get_vector(exo1_word).reshape(1, 200)
 
             self.index2word += model.wv.index2word.copy()
             self.vectors = np.vstack(
-                (padding_vector, unk_vector, none_vector, exo1_vector, exo2_vector, exoX_vector, model.wv.vectors.copy())
+                (padding_vector, unk_vector, none_vector, exoX_vector, exo2_vector, exo1_vector, model.wv.vectors.copy())
             )
 
         elif emb_type == 'Random':
@@ -386,7 +404,7 @@ class VirtualWordsDataFrame():
 
 
 class DatasetLoading():
-    def __init__(self, emb_type, emb_path, media=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], pickle_path='../datasets.pickle'):
+    def __init__(self, emb_type, emb_path, media=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], pickle_path='../datasets.pickle', exo1_word='', exo2_word='', exoX_word=''):
         # def load_datasets(wv, is_intra, media=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], pickle_path='../datasets.pickle'):
         self.media = media
         self.pickle_path = pickle_path
@@ -404,7 +422,7 @@ class DatasetLoading():
                     _dataset = _datasets[file]
                     datasets[domain].append((_dataset, file))
         self.datasets = datasets
-        self.wv = WordVector(emb_type, emb_path)
+        self.wv = WordVector(emb_type, emb_path, exo1_word, exo2_word, exoX_word)
         self.fe = FeatureToEmbedID()
         self.vwdf = VirtualWordsDataFrame()
 
