@@ -37,6 +37,9 @@ def create_arg_parser():
     parser.add_argument('--case', '-c', dest='case', type=str, required=True, choices=['ga', 'o', 'ni'], help='target "case" type')
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
+    parser.add_argument('--exo1_word', dest='exo1_word', type=str, default='', help='exo1 initialize word')
+    parser.add_argument('--exo2_word', dest='exo2_word', type=str, default='', help='exo2 initialize word')
+    parser.add_argument('--exoX_word', dest='exoX_word', type=str, default='', help='exoX initialize word')
     return parser
 
 
@@ -175,8 +178,7 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
 
-    # dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media)
-    dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media, exo1_word='僕', exo2_word='おまえ', exoX_word='これ')
+    dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media, exo1_word=args.exo1_word, exo2_word=args.exo2_word, exoX_word=args.exoX_word)
     if args.dataset_type == 'intra':
         dl.making_intra_df()
     elif args.dataset_type == 'inter':

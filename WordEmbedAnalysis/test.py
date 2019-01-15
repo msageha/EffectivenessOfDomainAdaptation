@@ -100,8 +100,7 @@ def main():
     args = parser.parse_args()
     load_config(args)
 
-    # dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media)
-    dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media, exo1_word='僕', exo2_word='おまえ', exoX_word='これ')
+    dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media, exo1_word=args.exo1_word, exo2_word=args.exo2_word, exoX_word=args.exoX_word)
     if args.dataset_type == 'intra':
         dl.making_intra_df()
     elif args.dataset_type == 'inter':
