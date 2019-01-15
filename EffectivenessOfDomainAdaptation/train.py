@@ -52,7 +52,7 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, sta
         bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'CPS':
         bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=statistics_of_each_case_type, gpu=is_gpu)
-    elif model == 'MIX:
+    elif model == 'MIX':
         bilstm = Mixture(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=statistics_of_each_case_type, gpu=is_gpu)
     if is_gpu:
         bilstm = bilstm.cuda()
