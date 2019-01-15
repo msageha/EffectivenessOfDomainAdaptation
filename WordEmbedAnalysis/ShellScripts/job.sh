@@ -3,7 +3,7 @@
 # 実行時間を指定（5分）
 #$ -l h_rt=24:00:00
 # 名前（hill_climbing.e[ジョブ番号？]，hill_climbing.o[ジョブ番号？]というそれぞれエラー出力，標準出力ファイルが生成される．ただしこれの内容は信用できない）
-#$ -N w2v_Modify
+#$ -N BCCWJ_Modify
 # Module コマンドの初期化
 . /etc/profile.d/modules.sh
 module load cuda/9.0.176 cudnn/7.1 gnuplot
@@ -20,14 +20,14 @@ emb_path='../../data/embedding/Word2Vec'
 emb_dim=200
 w2v_media=(OC OY OW PB PM PN)
 
-#w2v Wikipedia
-python3 train.py --type intra --emb_type Word2VecWiki --emb_path ../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt --gpu 0 --case ga --dump_dir intra/Exophora_Modify/entity_vector/ga --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Exophora_Modify/entity_vector/ga
+#w2v BCCWJ
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All.bin --gpu 0 --case ga --dump_dir intra/Exophora_Modify/BCCWJ/ga --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Exophora_Modify/BCCWJ/ga
 
-#w2v Wikipedia
-python3 train.py --type intra --emb_type Word2VecWiki --emb_path ../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt --gpu 0 --case o --dump_dir intra/Exophora_Modify/entity_vector/o --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Exophora_Modify/entity_vector/o
+#w2v BCCWJ
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All.bin --gpu 0 --case o --dump_dir intra/Exophora_Modify/BCCWJ/o --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Exophora_Modify/BCCWJ/o
 
-#w2v Wikipedia
-python3 train.py --type intra --emb_type Word2VecWiki --emb_path ../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt --gpu 0 --case ni --dump_dir intra/Exophora_Modify/entity_vector/ni --emb_dim 200
-python3 test.py --gpu 0 --load_dir intra/Exophora_Modify/entity_vector/ni
+#w2v BCCWJ
+python3 train.py --type intra --emb_type Word2Vec --emb_path ../../data/embedding/Word2Vec/All.bin --gpu 0 --case ni --dump_dir intra/Exophora_Modify/BCCWJ/ni --emb_dim 200
+python3 test.py --gpu 0 --load_dir intra/Exophora_Modify/BCCWJ/ni
