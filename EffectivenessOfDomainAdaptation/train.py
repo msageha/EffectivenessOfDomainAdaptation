@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from model import BiLSTM, OneHot, FeatureAugmentation, ClassProbabilityShift
+from model import BiLSTM, OneHot, FeatureAugmentation, ClassProbabilityShift, Mixture
 import test
 
 import sys
