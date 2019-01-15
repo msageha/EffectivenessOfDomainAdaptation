@@ -101,7 +101,7 @@ def main():
     load_config(args)
 
     # dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media)
-    dl = DatasetLoading(emb_type, args.emb_path, media=args.media, exo1_word='僕', exo2_word='お前', exoX_word='これ')
+    dl = DatasetLoading(args.emb_type, args.emb_path, media=args.media, exo1_word='僕', exo2_word='お前', exoX_word='これ')
     if args.dataset_type == 'intra':
         dl.making_intra_df()
     elif args.dataset_type == 'inter':
