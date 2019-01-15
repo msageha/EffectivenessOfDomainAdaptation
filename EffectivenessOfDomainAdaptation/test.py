@@ -53,10 +53,10 @@ def run(tests_dict, bilstm, batch_size, args):
         batch = batch[argsort_index]
         x, y, files = train.translate_batch(batch, args.gpu, args.case)
 
-        if args.model == 'FA' or args.model == 'MIX':
+        if args.model == 'FA':
             domain = return_file_domain(files[0])
             out = bilstm.forward(x, domain)
-        elif args.model == 'OneH' or args.model == 'CPS':
+        elif args.model == 'OneH' or args.model == 'CPS' or args.model == 'MIX':
             domains = [return_file_domain(file) for file in files]
             out = bilstm.forward(x, domains)
         else:

@@ -52,6 +52,8 @@ def initialize_model(gpu, vocab_size, v_vec, dropout_ratio, n_layers, model, sta
         bilstm = FeatureAugmentation(vocab_size, v_vec, dropout_ratio, n_layers, gpu=is_gpu)
     elif model == 'CPS':
         bilstm = ClassProbabilityShift(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=statistics_of_each_case_type, gpu=is_gpu)
+    elif model == 'MIX:
+        bilstm = Mixture(vocab_size, v_vec, dropout_ratio, n_layers, statistics_of_each_case_type=statistics_of_each_case_type, gpu=is_gpu)
     if is_gpu:
         bilstm = bilstm.cuda()
 
@@ -144,10 +146,10 @@ def run(trains_dict, vals_dict, bilstm, args, lr, batch_size):
             batch = batch[argsort_index]
             x, y, files = translate_batch(batch, args.gpu, args.case)
             batchsize = len(batch)
-            if args.model == 'FA' or args.model == 'MIX':
+            if args.model == 'FA':
                 domain = return_file_domain(files[0])
                 out = bilstm.forward(x, domain)
-            elif args.model == 'OneH' or args.model == 'CPS':
+            elif args.model == 'OneH' or args.model == 'CPS' or args.model == 'MIX':
                 domains = [return_file_domain(file) for file in files]
                 out = bilstm.forward(x, domains)
             else:
