@@ -222,7 +222,7 @@ def main():
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
     args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
 
-    if args.model == 'CPS':
+    if args.model == 'CPS' or args.model == 'MIX':
         statistics_of_each_case_type = init_statistics_of_each_case_type(trains_dict, args.case, args.media)
     else:
         statistics_of_each_case_type = None
