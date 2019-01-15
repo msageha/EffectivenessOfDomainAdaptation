@@ -392,7 +392,7 @@ class DatasetLoading():
         self.pickle_path = pickle_path
         self.emb_type = emb_type
         self.emb_path = emb_path
-        self.word_count = defaultdict(int)
+        # self.word_count = defaultdict(int)
         datasets = defaultdict(list)
         with open(pickle_path, 'rb') as f:
             print(f'--- start loading datasets pickle from {pickle_path} ---')
@@ -509,7 +509,7 @@ class DatasetLoading():
                 row['単語ID'] = self.wv.word2index[row['単語']]
             else:
                 row['単語ID'] = self.wv.word2index['<unk>']
-            self.word_count[row['単語ID']] += 1
+            # self.word_count[row['単語ID']] += 1
 
             # 形態素素性
             row['形態素0'] = self.fe.feature0[row['形態素0']]
@@ -611,3 +611,17 @@ def load_model(epoch, bilstm, dump_dir, gpu):
     bilstm.load_state_dict(torch.load(f'./{dump_dir}/model/{epoch}.pkl'))
     if gpu>=0:
         bilstm.cuda()
+
+
+def tmp():
+    model = load_word_vector('../../data/embedding/Word2Vec/')
+    word_count = defaultdict(int)
+    for key in datasets:
+        df = datasets[key]
+        for word in df['単語']:
+            if word in model.wv.vocab:
+                word_count[word] += 1
+            else:
+                word_count['<UNK>'] += 1
+    print(f'語彙サイズ： {len(model.wv.vocab)}')
+    print(f'未知語割合： {word_count["<UNK>"]/sum(word_count.values())*100}')
