@@ -218,9 +218,9 @@ def main():
         if domain not in trains_dict:
             del trains_dict[domain]
 
-    args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in args.media])
-    args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in args.media])
-    args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in args.media])
+    args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in trains_dict.keys()])
+    args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in vals_dict.keys()])
+    args.__dict__['tests_size'] = sum([len(tests_dict[domain]) for domain in tests_dict.keys()])
 
     if args.model == 'CPS' or args.model == 'MIX':
         statistics_of_each_case_type = init_statistics_of_each_case_type(trains_dict, args.case, args.media)
