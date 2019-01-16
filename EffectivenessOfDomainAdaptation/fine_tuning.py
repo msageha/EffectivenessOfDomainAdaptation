@@ -74,9 +74,9 @@ def run(trains, vals_dict, bilstm, args, ft_domain, lr, batch_size):
         _results, _ = test.run(vals_dict, bilstm, batch_size, args)
         results[epoch] = _results
         if args.save:
-            save_model(epoch, bilstm, args.dump_dir+f'/{ft_domain}', args.gpu)
+            save_model(epoch, bilstm, args.dump_dir+f'/{ft_domain}/{args.case}', args.gpu)
     if args.save:
-        dump_dict(results, args.dump_dir+f'/{ft_domain}', 'training_logs')
+        dump_dict(results, args.dump_dir+f'/{ft_domain}/{args.case}', 'training_logs')
     best_epochs = defaultdict(lambda: defaultdict(float))
     for epoch in results:
         for domain in sorted(results[epoch].keys()):
@@ -85,7 +85,7 @@ def run(trains, vals_dict, bilstm, args, ft_domain, lr, batch_size):
                 best_epochs[domain]['acc(one_label)'] = results[epoch][domain]['acc(one_label)']
                 best_epochs[domain]['epoch'] = epoch
     if args.save:
-        dump_dict(best_epochs, args.dump_dir+f'/{ft_domain}', 'training_result')
+        dump_dict(best_epochs, args.dump_dir+f'/{ft_domain}/{args.case}', 'training_result')
     print('--- finish training ---\n--- best F1-score epoch for each domain ---')
     for domain in sorted(best_epochs.keys()):
         print(f'{domain} [epoch: {best_epochs[domain]["epoch"]}]\tF1-score: {best_epochs[domain]["F1-score(total)"]}\tacc(one_label): {best_epochs[domain]["acc(one_label)"]}')
@@ -108,12 +108,12 @@ def main():
     pprint(args.__dict__)
     val_results = test.max_f1_epochs_of_vals(args.load_dir)
 
-    for domain in =['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
-        max_epoch = val_results[domain]['epoch']
+    for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
+        epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
         
         #lr = 0.0001にしてもいいかも
-        run(trains_dict[domain], vals_dict, bilstm, args, ft_domain, lr=0.001, batch_size=64)
+        run(trains_dict[domain], vals_dict, bilstm, args, ft_domain=domain, lr=0.001, batch_size=64)
 
 
 if __name__ == '__main__':
