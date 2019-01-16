@@ -103,7 +103,12 @@ def main():
 
     trains_dict, vals_dict, _ = dl.split_each_domain('intra')
 
-    bilstm = train.initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model, statistics_of_each_case_type=None)
+    if args.model == 'MIX':
+        statistics_of_each_case_type = train.init_statistics_of_each_case_type(trains_dict, args.case, args.media)
+    else:
+        statistics_of_each_case_type = None
+
+    bilstm = train.initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model, statistics_of_each_case_type=statistics_of_each_case_type)
 
     pprint(args.__dict__)
     val_results = test.max_f1_epochs_of_vals(args.load_dir)
