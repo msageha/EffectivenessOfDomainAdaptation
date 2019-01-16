@@ -3,7 +3,7 @@
 # 実行時間を指定（5分）
 #$ -l h_rt=24:00:00
 # 名前（hill_climbing.e[ジョブ番号？]，hill_climbing.o[ジョブ番号？]というそれぞれエラー出力，標準出力ファイルが生成される．ただしこれの内容は信用できない）
-#$ -N Base
+#$ -N FT
 # Module コマンドの初期化
 . /etc/profile.d/modules.sh
 module load cuda/9.0.176 cudnn/7.1 gnuplot
