@@ -109,11 +109,12 @@ def main():
     val_results = test.max_f1_epochs_of_vals(args.load_dir)
 
     for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
+        print(f'--- start {domain} fine tuning ---')
         epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
         
         #lr = 0.0001にしてもいいかも
-        run(trains_dict[domain], vals_dict, bilstm, args, ft_domain=domain, lr=0.001, batch_size=64)
+        run(trains_dict[domain], vals_dict, bilstm, args, ft_domain=domain, lr=0.0001, batch_size=64)
 
 
 if __name__ == '__main__':
