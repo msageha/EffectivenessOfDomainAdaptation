@@ -2,7 +2,7 @@ import argparse
 
 import sys
 sys.path.append('../utils')
-from loader import DatasetLoading, load_model
+from loader import DatasetLoading
 
 
 def create_arg_parser():
@@ -13,6 +13,7 @@ def create_arg_parser():
 
 
 def main():
+    parser = create_arg_parser()
     args = parser.parse_args()
     emb_type = 'Word2VecWiki'
     emb_path = '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt'
