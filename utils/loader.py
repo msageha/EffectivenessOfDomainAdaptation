@@ -581,7 +581,8 @@ class DatasetLoading():
         df = pd.concat(
             [self.vwdf.virtual_words, df], ignore_index=True, sort=False
         )
-        df['単語ID'] = df['単語']
+        # df['単語ID'] = df['単語']
+        df.loc[:, '単語ID'] = df['単語']
         for index, row in df.iterrows():
             if row['単語'] in self.wv.word2index:
                 row['単語ID'] = self.wv.word2index[row['単語']]
@@ -626,7 +627,8 @@ class DatasetLoading():
 
 
     def _df_to_predicate_vector(self, df):
-        df['単語ID'] = df['単語']
+        # df['単語ID'] = df['単語']
+        df.loc[:, '単語ID'] = df['単語']
         for index, row in df.iterrows():
             if row['単語'] in self.wv.word2index:
                 row['単語ID'] = self.wv.word2index[row['単語']]
@@ -650,7 +652,7 @@ class DatasetLoading():
                 row['is機能語'] = 0
             row['係り先文節'] = extraction_num(row['係り先文節'])
         y = pd.DataFrame(df['verb_type'].copy())
-        y['is_verb'] = 0
+        y.iloc[:, 'is_verb'] = 0
         for index, row in y.iterrows():
             if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
                 row['is_verb'] = 1
