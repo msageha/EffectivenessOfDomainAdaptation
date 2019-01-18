@@ -656,7 +656,7 @@ class DatasetLoading():
         y['is_verb'] = 0
         for index, row in y.iterrows():
             if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
-                y.iloc[index, 'is_verb'] = 1
+                y.loc[index, 'is_verb'] = 1
         x = _df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type', 'n文目', 'is文末'], axis=1).copy()
         return x, y
 
