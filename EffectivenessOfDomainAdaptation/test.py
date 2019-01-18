@@ -108,7 +108,6 @@ def create_arg_parser():
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--gpu', '-g', dest='gpu', type=int, default=-1, help='GPU ID for execution')
     parser.add_argument('--load_dir', dest='load_dir', type=str, required=True, help='model load directory path')
-    parser.add_argument('--VOT', dest='isVOT', action='store_true', default=False, help='is Voting')
     return parser
 
 
@@ -130,7 +129,7 @@ def main():
 
     trains_dict, _, tests_dict = dl.split_each_domain('intra')
 
-    if args.model == 'CPS' or args.model == 'MIX' or args.:
+    if args.model == 'CPS' or args.model == 'MIX':
         statistics_of_each_case_type = train.init_statistics_of_each_case_type(trains_dict, args.case, args.media)
     else:
         statistics_of_each_case_type = None
