@@ -431,8 +431,8 @@ class DatasetLoading():
         for domain in self.media:
             print(f'--- start loading {domain} ---')
             for df, file in self.datasets[domain]:
-                for intra_df in self._to_intra_sentential_df(df):
-                    for x, y in self._df_to_intra_vector(intra_df):
+                for sentential_df in self._to_sentential_df(df):
+                    for x, y in self._df_to_intra_vector(sentential_df):
                         datasets_intra[domain].append((x, y, file))
         self.datasets_intra = datasets_intra
 
@@ -444,6 +444,16 @@ class DatasetLoading():
                 for x, y in self._df_to_inter_vector(df):
                     datasets_inter[domain].append((x, y, file))
         self.datasets_inter = datasets_inter
+
+    def making_predicate_df(self):
+        datasets_predicate = defaultdict(list)
+        for domain in self.media:
+            print(f'--- start loading {domain} ---')
+            for df, file in self.datasets[domain]:
+                for sentential_df in self._to_sentential_df(df):
+                    x, y = self._df_to_predicate_vector(sentential_df)
+                    datasets_predicate[domain].append((x, y, file))
+        self.datasets_predicate = datasets_predicate
 
     def split(self, type, sizes=[0.7, 0.1, 0.2]):
         if type == 'intra':
@@ -493,7 +503,7 @@ class DatasetLoading():
             tests_dict[domain] = np.array(dataset[domain][start:])
         return trains_dict, vals_dict, tests_dict
 
-    def _to_intra_sentential_df(self, df):
+    def _to_sentential_df(self, df):
         last_sentence_indices = df['is文末'][df['is文末'] == True].index
         start = 0
         for index in last_sentence_indices:
@@ -613,6 +623,39 @@ class DatasetLoading():
                 x.iloc[index, i] = 1
                 x['述語からの距離'] = x.index - index
                 yield x, y
+
+
+    def _df_to_predicate_vector(self, df):
+        df['単語ID'] = df['単語']
+        for index, row in df.iterrows():
+            if row['単語'] in self.wv.word2index:
+                row['単語ID'] = self.wv.word2index[row['単語']]
+            else:
+                row['単語ID'] = self.wv.word2index['<unk>']
+            # 形態素素性
+            row['形態素0'] = self.fe.feature0[row['形態素0']]
+            row['形態素1'] = self.fe.feature1[row['形態素1']]
+            row['形態素2'] = self.fe.feature2[row['形態素2']]
+            row['形態素3'] = self.fe.feature3[row['形態素3']]
+            row['形態素4'] = self.fe.feature4[row['形態素4']]
+            row['形態素5'] = self.fe.feature5[row['形態素5']]
+            # その他特徴量
+            if row['is主辞']:
+                row['is主辞'] = 1
+            else:
+                row['is主辞'] = 0
+            if row['is機能語']:
+                row['is機能語'] = 1
+            else:
+                row['is機能語'] = 0
+            row['係り先文節'] = extraction_num(row['係り先文節'])
+        y = pd.DataFrame(df['verb_type'].copy())
+        y['is_verb'] = 0
+        for index, row in y.iterrows():
+            if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
+                row['is_verb'] = 1
+        x = df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type', 'n文目', 'is文末'], axis=1).copy()
+        return x, y
 
 
 def load_config(args):

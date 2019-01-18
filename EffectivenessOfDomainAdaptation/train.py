@@ -37,6 +37,7 @@ def create_arg_parser():
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
     parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OneH', 'FA', 'CPS', 'MIX'])
+    parser.add_argument('--small', dest='small', action='store_true', default=False, help='training data reduction to 75%')
     return parser
 
 
@@ -218,6 +219,11 @@ def main():
     for domain in media:
         if domain not in args.media:
             del trains_dict[domain]
+
+    if args.small:
+        for domain in trains_dict.keys():
+            size = int(len(trains_dict[domain])*0.75)
+            trains_dict[domain] = trains_dict[domain][:size]
 
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in trains_dict.keys()])
     args.__dict__['vals_size'] = sum([len(vals_dict[domain]) for domain in vals_dict.keys()])

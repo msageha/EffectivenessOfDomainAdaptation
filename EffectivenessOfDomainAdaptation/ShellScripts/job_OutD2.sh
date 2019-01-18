@@ -12,13 +12,13 @@ module load cuda/9.0.176 cudnn/7.1 gnuplot
 source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/EffectivenessOfDomainAdaptation
 #out PB
-python3 train.py --emb_path '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt' --gpu 0 --case ni --save --dump_dir './OutD/PB/ni' --model Base --media OC OY OW PM PN
-python3 test.py --gpu 0 --load_dir './OutD/PB/ni'
+python3 train.py --emb_path '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt' --gpu 0 --case ga --save --dump_dir './OutD/PB/ga' --model Base --media OC OY OW PM PN
+python3 test.py --gpu 0 --load_dir './OutD/PB/ga'
 
 #out PM
-python3 train.py --emb_path '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt' --gpu 0 --case ni --save --dump_dir './OutD/PM/ni' --model Base --media OC OY OW PB PN
-python3 test.py --gpu 0 --load_dir './OutD/PM/ni'
+python3 train.py --emb_path '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt' --gpu 0 --case ga --save --dump_dir './OutD/PM/ga' --model Base --media OC OY OW PB PN
+python3 test.py --gpu 0 --load_dir './OutD/PM/ga'
 
 #out PN
-python3 train.py --emb_path '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt' --gpu 0 --case ni --save --dump_dir './OutD/PN/ni' --model Base --media OC OY OW PB PM
-python3 test.py --gpu 0 --load_dir './OutD/PN/ni'
+python3 train.py --emb_path '../../data/embedding/Word2VecWiki/entity_vector/entity_vector.model.txt' --gpu 0 --case ga --save --dump_dir './OutD/PN/ga' --model Base --media OC OY OW PB PM
+python3 test.py --gpu 0 --load_dir './OutD/PN/ga'
