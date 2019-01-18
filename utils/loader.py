@@ -530,7 +530,7 @@ class DatasetLoading():
             [self.vwdf.virtual_words, df],
             ignore_index=True, sort=False
         )
-        df['単語ID'] = df['単語']
+        df.loc[:, '単語ID'] = df['単語']
         for index, row in df.iterrows():
             # 各単語についての処理
             if row['単語'] in self.wv.word2index:
