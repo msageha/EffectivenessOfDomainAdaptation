@@ -36,7 +36,7 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
-    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OneH', 'FA', 'CPS', 'VOT', 'MIX'])
+    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OneH', 'FA', 'CPS', 'MIX'])
     return parser
 
 
@@ -214,8 +214,9 @@ def main():
     dl.making_intra_df()
 
     trains_dict, vals_dict, tests_dict = dl.split_each_domain('intra')
-    for domain in args.media:
-        if domain not in trains_dict:
+    media = trains_dict.keys()
+    for domain in media:
+        if domain not in args.media:
             del trains_dict[domain]
 
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in trains_dict.keys()])

@@ -12,7 +12,7 @@ module load cuda/9.0.176 cudnn/7.1 gnuplot
 source /home/2/17M30683/.bash_profile
 cd /gs/hs0/tga-cl/sango-m-ab/research2/PAS_by_torch/EffectivenessOfDomainAdaptation
 #ga
-python3 fine_tuning.py --gpu 0 --load_dir './MIX_Base/ga' --model MIX --dump_dir './MIX'
+# python3 fine_tuning.py --gpu 0 --load_dir './MIX_Base/ga' --model MIX --dump_dir './MIX'
 python3 test.py --gpu 0 --load_dir './MIX/OC/ga'
 python3 test.py --gpu 0 --load_dir './MIX/OY/ga'
 python3 test.py --gpu 0 --load_dir './MIX/OW/ga'
@@ -21,7 +21,7 @@ python3 test.py --gpu 0 --load_dir './MIX/PM/ga'
 python3 test.py --gpu 0 --load_dir './MIX/PN/ga'
 
 #o
-python3 fine_tuning.py --gpu 0 --load_dir './MIX_Base/o' --model MIX --dump_dir './MIX'
+# python3 fine_tuning.py --gpu 0 --load_dir './MIX_Base/o' --model MIX --dump_dir './MIX'
 python3 test.py --gpu 0 --load_dir './MIX/OC/o'
 python3 test.py --gpu 0 --load_dir './MIX/OY/o'
 python3 test.py --gpu 0 --load_dir './MIX/OW/o'
@@ -30,7 +30,7 @@ python3 test.py --gpu 0 --load_dir './MIX/PM/o'
 python3 test.py --gpu 0 --load_dir './MIX/PN/o'
 
 #ni
-python3 fine_tuning.py --gpu 0 --load_dir './MIX_Base/ni' --model MIX --dump_dir './MIX'
+# python3 fine_tuning.py --gpu 0 --load_dir './MIX_Base/ni' --model MIX --dump_dir './MIX'
 python3 test.py --gpu 0 --load_dir './MIX/OC/ni'
 python3 test.py --gpu 0 --load_dir './MIX/OY/ni'
 python3 test.py --gpu 0 --load_dir './MIX/OW/ni'

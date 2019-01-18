@@ -6,7 +6,6 @@ from loader import DatasetLoading
 
 
 def create_arg_parser():
-    parser = create_arg_parser()
     parser = argparse.ArgumentParser(description='main function parser')
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     return parser
@@ -21,8 +20,9 @@ def main():
     dl.making_intra_df()
 
     trains_dict, vals_dict, tests_dict = dl.split_each_domain('intra')
-    for domain in args.media:
-        if domain not in trains_dict:
+    media = trains_dict.keys()
+    for domain in media:
+        if domain not in args.media:
             del trains_dict[domain]
 
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in trains_dict.keys()])
@@ -33,3 +33,7 @@ def main():
     print(f'trains_size {args.__dict__["trains_size"]}')
     print(f'vals_size {args.__dict__["vals_size"]}')
     print(f'tests_size {args.__dict__["tests_size"]}')
+
+
+if __name__ == '__main__':
+    main()

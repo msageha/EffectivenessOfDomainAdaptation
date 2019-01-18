@@ -115,6 +115,7 @@ def main():
 
     for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
         print(f'--- start {domain} fine tuning ---')
+        dump_dict(args.__dict__, args.dump_dir+f'/{ft_domain}/{args.case}', 'args')
         epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
         
