@@ -628,9 +628,9 @@ class DatasetLoading():
 
 
     def _df_to_predicate_vector(self, df):
-        df['単語ID'] = 0
-        df['単語ID'] = df['単語'].copy()
-        for index, row in df.iterrows():
+        _df = df.copy()
+        _df['単語ID'] = df['単語'].copy()
+        for index, row in _df.iterrows():
             if row['単語'] in self.wv.word2index:
                 row['単語ID'] = self.wv.word2index[row['単語']]
             else:
@@ -652,12 +652,12 @@ class DatasetLoading():
             else:
                 row['is機能語'] = 0
             row['係り先文節'] = extraction_num(row['係り先文節'])
-        y = pd.DataFrame(df['verb_type'].copy())
+        y = pd.DataFrame(_df['verb_type'].copy())
         y['is_verb'] = 0
         for index, row in y.iterrows():
             if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
                 row['is_verb'] = 1
-        x = df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type', 'n文目', 'is文末'], axis=1).copy()
+        x = _df.drop(labels=['id', 'ga', 'ga_type', 'o', 'o_type', 'ni', 'ni_type', 'verb_type', 'n文目', 'is文末'], axis=1).copy()
         return x, y
 
 
