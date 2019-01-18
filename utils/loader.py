@@ -652,7 +652,7 @@ class DatasetLoading():
                 row['is機能語'] = 0
             row['係り先文節'] = extraction_num(row['係り先文節'])
         y = pd.DataFrame(df['verb_type'].copy())
-        y.iloc[:, 'is_verb'] = 0
+        y['is_verb'] = 0
         for index, row in y.iterrows():
             if row['verb_type'] == 'noun' or row['verb_type'] == 'pred':
                 row['is_verb'] = 1
