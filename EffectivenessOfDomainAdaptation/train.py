@@ -214,7 +214,7 @@ def main():
     dl.making_intra_df()
 
     trains_dict, vals_dict, tests_dict = dl.split_each_domain('intra')
-    media = trains_dict.keys()
+    media = list(trains_dict.keys())
     for domain in media:
         if domain not in args.media:
             del trains_dict[domain]
