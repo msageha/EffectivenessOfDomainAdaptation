@@ -98,17 +98,17 @@ def main():
 
     emb_type = 'Word2VecWiki'
 
-    # dl = DatasetLoading(emb_type, args.emb_path, exo1_word='僕', exo2_word='おまえ', exoX_word='これ')
-    # dl.making_intra_df()
+    dl = DatasetLoading(emb_type, args.emb_path, exo1_word='僕', exo2_word='おまえ', exoX_word='これ')
+    dl.making_intra_df()
 
-    # trains_dict, vals_dict, _ = dl.split_each_domain('intra')
+    trains_dict, vals_dict, _ = dl.split_each_domain('intra')
 
-    # if args.model == 'MIX':
-    #     statistics_of_each_case_type = train.init_statistics_of_each_case_type(trains_dict, args.case, args.media)
-    # else:
-    #     statistics_of_each_case_type = None
+    if args.model == 'MIX':
+        statistics_of_each_case_type = train.init_statistics_of_each_case_type(trains_dict, args.case, args.media)
+    else:
+        statistics_of_each_case_type = None
 
-    # bilstm = train.initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model, statistics_of_each_case_type=statistics_of_each_case_type)
+    bilstm = train.initialize_model(args.gpu, vocab_size=len(dl.wv.index2word), v_vec=dl.wv.vectors, dropout_ratio=0.2, n_layers=3, model=args.model, statistics_of_each_case_type=statistics_of_each_case_type)
 
     pprint(args.__dict__)
     val_results = test.max_f1_epochs_of_vals(args.load_dir)
@@ -116,11 +116,11 @@ def main():
     for domain in ['OC', 'OY', 'OW', 'PB', 'PM', 'PN']:
         print(f'--- start {domain} fine tuning ---')
         dump_dict(args.__dict__, args.dump_dir+f'/{ft_domain}/{args.case}', 'args')
-        # epoch = val_results[domain]['epoch']
-        # load_model(epoch, bilstm, args.load_dir, args.gpu)
+        epoch = val_results[domain]['epoch']
+        load_model(epoch, bilstm, args.load_dir, args.gpu)
         
-        # #lr = 0.0001にしてもいいかも
-        # run(trains_dict[domain], vals_dict, bilstm, args, ft_domain=domain, lr=0.0001, batch_size=64)
+        #lr = 0.0001にしてもいいかも
+        run(trains_dict[domain], vals_dict, bilstm, args, ft_domain=domain, lr=0.0001, batch_size=64)
 
 
 if __name__ == '__main__':
