@@ -530,7 +530,8 @@ class DatasetLoading():
             [self.vwdf.virtual_words, df],
             ignore_index=True, sort=False
         )
-        df.loc[:, '単語ID'] = df['単語']
+        df['単語ID'] = 0
+        df['単語ID'] = df['単語'].copy()
         for index, row in df.iterrows():
             # 各単語についての処理
             if row['単語'] in self.wv.word2index:
@@ -581,8 +582,8 @@ class DatasetLoading():
         df = pd.concat(
             [self.vwdf.virtual_words, df], ignore_index=True, sort=False
         )
-        # df['単語ID'] = df['単語']
-        df.loc[:, '単語ID'] = df['単語']
+        df['単語ID'] = 0
+        df['単語ID'] = df['単語'].copy()
         for index, row in df.iterrows():
             if row['単語'] in self.wv.word2index:
                 row['単語ID'] = self.wv.word2index[row['単語']]
@@ -627,8 +628,8 @@ class DatasetLoading():
 
 
     def _df_to_predicate_vector(self, df):
-        # df['単語ID'] = df['単語']
-        df.loc[:, '単語ID'] = df['単語']
+        df['単語ID'] = 0
+        df['単語ID'] = df['単語'].copy()
         for index, row in df.iterrows():
             if row['単語'] in self.wv.word2index:
                 row['単語ID'] = self.wv.word2index[row['単語']]
