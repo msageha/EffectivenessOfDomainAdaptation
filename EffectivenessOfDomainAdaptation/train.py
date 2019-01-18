@@ -36,7 +36,7 @@ def create_arg_parser():
     parser.add_argument('--media', '-m', dest='media', nargs='+', type=str, default=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], choices=['OC', 'OY', 'OW', 'PB', 'PM', 'PN'], help='training media type')
     parser.add_argument('--save', dest='save', action='store_true', default=False, help='saving model or not')
     parser.add_argument('--dump_dir', dest='dump_dir', type=str, required=True, help='model dump directory path')
-    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OneH', 'FA', 'CPS', 'VOT', 'MIX'])
+    parser.add_argument('--model', dest='model', type=str, required=True, choices=['Base', 'OneH', 'FA', 'CPS', 'MIX'])
     return parser
 
 

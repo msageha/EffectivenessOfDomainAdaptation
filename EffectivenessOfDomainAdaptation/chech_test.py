@@ -21,8 +21,8 @@ def main():
     dl.making_intra_df()
 
     trains_dict, vals_dict, tests_dict = dl.split_each_domain('intra')
-    for domain in args.media:
-        if domain not in trains_dict:
+    for domain in trains_dict.keys():
+        if domain not in args.media:
             del trains_dict[domain]
 
     args.__dict__['trains_size'] = sum([len(trains_dict[domain]) for domain in trains_dict.keys()])
