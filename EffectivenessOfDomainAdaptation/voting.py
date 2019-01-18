@@ -211,7 +211,7 @@ def main():
     # domain = 'All'
 
     pprint(args.__dict__)
-    for domain in args.media:
+    for domain in tests_dict.keys():
         load_config(args, args.load_FTdir+f'/{domain}/{args.case}')
         val_results_FT = max_f1_epochs_of_vals(args.load_FTdir+f'/{domain}/{args.case}')
         epoch_FT = val_results_FT[domain]['epoch']
@@ -230,8 +230,8 @@ def main():
         results[domain]['epoch_FA'] = epoch_FA
         results[domain]['epoch_CPS'] = epoch_CPS
         logs[domain] = _logs[domain]
-        dump_dict(results, args.dump_dir+f'/{domain}/{args.case}', 'test_logs')
-        dump_predict_logs(logs, args.dump_dir+f'/{domain}/{args.case}')
+    dump_dict(results, args.dump_dir+f'/{args.case}', 'test_logs')
+    dump_predict_logs(logs, args.dump_dir+f'/{args.case}')
 
 
 if __name__ == '__main__':
