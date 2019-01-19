@@ -146,7 +146,7 @@ def main():
     _results, _ = run(tests_dict, bilstm, 1, args)
     results[domain] = _results[domain]
     results[domain]['epoch'] = epoch
-    for domain in args.media:
+    for domain in tests_dict.keys():
         epoch = val_results[domain]['epoch']
         load_model(epoch, bilstm, args.load_dir, args.gpu)
         _results, _logs = run(tests_dict, bilstm, 1, args)
