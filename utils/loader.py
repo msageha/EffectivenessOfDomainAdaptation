@@ -460,6 +460,8 @@ class DatasetLoading():
             dataset = self.datasets_intra
         elif type == 'inter':
             dataset = self.datasets_inter
+        elif type == 'predicate':
+            dataset = self.datasets_predicate
         else:
             raise ValueError()
         trains = []
@@ -487,6 +489,8 @@ class DatasetLoading():
             dataset = self.datasets_intra
         elif type == 'inter':
             dataset = self.datasets_inter
+        elif type == 'predicate':
+            dataset = self.datasets_predicate
         else:
             raise ValueError()
         trains_dict = {}
