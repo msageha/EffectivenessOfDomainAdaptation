@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from model import BiLSTM, OneHot, FeatureAugmentation, ClassProbabilityShift, Mixture
+from model import BiLSTM
 import test
 
 import sys
@@ -161,8 +161,9 @@ def main():
 
     dl = DatasetLoading(emb_type, emb_path)
     dl.making_predicate_df()
+    dataset_type = 
 
-    trains, vals, tests = dl.split(args.dataset_type)
+    trains, vals, tests = dl.split(dataset_type)
     args.__dict__['trains_size'] = len(trains)
     args.__dict__['vals_size'] = len(vals)
     args.__dict__['tests_size'] = len(tests)
