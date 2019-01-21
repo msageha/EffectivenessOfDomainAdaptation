@@ -161,7 +161,7 @@ def main():
 
     dl = DatasetLoading(emb_type, emb_path)
     dl.making_predicate_df()
-    dataset_type = 
+    dataset_type = 'predicate'
 
     trains, vals, tests = dl.split(dataset_type)
     args.__dict__['trains_size'] = len(trains)
